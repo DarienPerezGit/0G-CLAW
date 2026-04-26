@@ -7,8 +7,6 @@
  * Required env vars (in .env):
  *   OG_STORAGE_RPC
  *   OG_STORAGE_INDEXER
- *   OG_KV_RPC
- *   OG_FLOW_CONTRACT
  *   OG_PRIVATE_KEY
  *
  * Skip gracefully if not configured:
@@ -24,8 +22,9 @@ import { OGMemoryAdapter } from './0GMemoryAdapter.js';
 import type { OGMemoryAdapterConfig } from './0GMemoryAdapter.js';
 import type { AgentSession } from './IMemoryAdapter.js';
 
-// Load .env before reading process.env
-loadDotenv();
+// Load .env before reading process.env.
+// override: true ensures .env values replace any empty/stale vars already in process.env.
+loadDotenv({ override: true });
 
 // ---------------------------------------------------------------------------
 // Env-var validation — skip all tests if not configured
@@ -34,8 +33,6 @@ loadDotenv();
 const REQUIRED = [
   'OG_STORAGE_RPC',
   'OG_STORAGE_INDEXER',
-  'OG_KV_RPC',
-  'OG_FLOW_CONTRACT',
   'OG_PRIVATE_KEY',
 ] as const;
 
@@ -56,10 +53,9 @@ function makeConfig(): OGMemoryAdapterConfig {
   return {
     rpc: process.env['OG_STORAGE_RPC']!,
     indexer: process.env['OG_STORAGE_INDEXER']!,
-    kvRpc: process.env['OG_KV_RPC']!,
-    flowContractAddress: process.env['OG_FLOW_CONTRACT']!,
     privateKey: process.env['OG_PRIVATE_KEY']!,
     // streamId omitted — derived from wallet address automatically
+    // cacheDir omitted — defaults to ~/.0g-claw/cache (shared between instances)
   };
 }
 
@@ -100,22 +96,20 @@ describe.skipIf(SKIP)('OGMemoryAdapter — KV round-trip (testnet)', () => {
       ).toThrow('config.rpc is required');
     });
 
-    it('throws if kvRpc is missing', () => {
+    it('throws if indexer is missing', () => {
       expect(
-        () => new OGMemoryAdapter({ ...makeConfig(), kvRpc: '' }),
-      ).toThrow('config.kvRpc is required');
-    });
-
-    it('throws if flowContractAddress is missing', () => {
-      expect(
-        () => new OGMemoryAdapter({ ...makeConfig(), flowContractAddress: '' }),
-      ).toThrow('config.flowContractAddress is required');
+        () => new OGMemoryAdapter({ ...makeConfig(), indexer: '' }),
+      ).toThrow('config.indexer is required');
     });
 
     it('throws if privateKey is missing', () => {
       expect(
         () => new OGMemoryAdapter({ ...makeConfig(), privateKey: '' }),
       ).toThrow('config.privateKey is required');
+    });
+
+    it('constructs successfully with minimal valid config', () => {
+      expect(() => new OGMemoryAdapter(makeConfig())).not.toThrow();
     });
   });
 

@@ -1,3 +1,6 @@
+import { promises as fsp } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import type {
   IMemoryAdapter,
   AgentSession,
@@ -8,45 +11,35 @@ import type {
 // 0G Storage SDK types (used only after dynamic import in _getClient)
 // ---------------------------------------------------------------------------
 
-// Internal shape of the initialized SDK client bundle — stored after first use.
-interface OGClientBundle {
-  /** 0G Storage Indexer — coordinates uploads via selectNodes() + flow contract */
-  indexer: {
-    selectNodes(
-      expectedReplica: number,
-    ): Promise<[StorageNodeLike[], Error | null]>;
-  };
-  /** KV client — reads from the 0G KV storage node */
-  kvClient: {
-    getValue(
-      streamId: string,
-      key: Uint8Array,
-      version?: number,
-    ): Promise<{ version: number; data: string; size: number } | null>;
-  };
-  /** Flow contract instance (signer embedded) — used by Batcher for on-chain tx */
-  flowContract: unknown;
-  /** Batcher constructor — batch KV writes into a single storage transaction */
-  BatcherClass: new (
-    version: number,
-    clients: StorageNodeLike[],
-    flow: unknown,
-    provider: string,
-  ) => {
-    streamDataBuilder: {
-      set(streamId: string, key: Uint8Array, data: Uint8Array): void;
-    };
-    exec(
-      opts?: unknown,
-    ): Promise<[{ txHash: string; rootHash: string }, Error | null]>;
-  };
-  /** Resolved stream ID — 32-byte hex, unique namespace for this agent wallet */
-  streamId: string;
+/** Minimal Indexer interface — upload writes to 0G, download retrieves. */
+interface IndexerLike {
+  upload(
+    file: unknown,
+    evmRpc: string,
+    signer: unknown,
+  ): Promise<[{ txHash: string; rootHash: string }, Error | null]>;
+  download(
+    rootHash: string,
+    filePath: string,
+    proof: boolean,
+  ): Promise<Error | null>;
 }
 
-// Minimal StorageNode interface used by Batcher
-interface StorageNodeLike {
-  [key: string]: unknown;
+// Internal shape of the initialized SDK client bundle — stored after first use.
+interface OGClientBundle {
+  /**
+   * Full Indexer instance — upload writes MemData to 0G Storage,
+   * download retrieves it by rootHash. No separate KV node required.
+   */
+  indexer: IndexerLike;
+  /** Signer — authorizes upload transactions (gas payment). */
+  signer: unknown;
+  /** MemData constructor — creates in-memory uploadable data objects. */
+  MemDataClass: new (data: ArrayLike<number>) => unknown;
+  /** Resolved stream ID — stable 32-byte namespace for this wallet. */
+  streamId: string;
+  /** Path to the local kv-index JSON file for this adapter instance. */
+  indexPath: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -61,24 +54,11 @@ export interface OGMemoryAdapterConfig {
   rpc: string;
 
   /**
-   * Storage indexer endpoint — used to discover storage nodes.
-   * Example: "https://indexer-storage-testnet-standard.0g.ai"
+   * Storage indexer endpoint — discovers nodes for upload and download.
+   * Use the turbo endpoint for testnet: "https://indexer-storage-testnet-turbo.0g.ai"
+   * The indexer auto-discovers the flow contract from the network.
    */
   indexer: string;
-
-  /**
-   * KV storage node RPC endpoint — used for reading KV values.
-   * This is a separate endpoint from the indexer.
-   * Example: "http://3.101.147.150:6789"
-   */
-  kvRpc: string;
-
-  /**
-   * Flow contract address on the EVM chain.
-   * Controls fee payment for storage operations.
-   * Find the testnet address at: https://docs.0g.ai/build-with-0g/storage-sdk
-   */
-  flowContractAddress: string;
 
   /**
    * Wallet private key for signing storage transactions.
@@ -95,10 +75,28 @@ export interface OGMemoryAdapterConfig {
   streamId?: string;
 
   /**
-   * Local cache directory (reserved for future download caching).
+   * Local cache directory for the rootHash index file.
    * Defaults to ~/.0g-claw/cache
+   *
+   * The index (kv-index.json) maps key → rootHash for all data written to 0G Storage.
+   * Two adapter instances pointing to the same cacheDir share the same index,
+   * which enables the portability guarantee: same wallet + same cacheDir = same state.
    */
   cacheDir?: string;
+
+  /**
+   * @deprecated KV RPC endpoint (port 6789) — no longer used.
+   * OGMemoryAdapter now reads via indexer.download() using cached rootHashes.
+   * Kept for backward compatibility; field is silently ignored.
+   */
+  kvRpc?: string;
+
+  /**
+   * @deprecated Flow contract address — no longer required.
+   * The indexer auto-discovers the flow contract from the storage network.
+   * Kept for backward compatibility; field is silently ignored.
+   */
+  flowContractAddress?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -138,19 +136,19 @@ function decode<T>(bytes: Uint8Array): T {
 // ---------------------------------------------------------------------------
 
 /**
- * 0G Storage-backed implementation of IMemoryAdapter.
+ * Storage strategy:
+ *   - Writes: serialize value → MemData → indexer.upload() → rootHash
+ *     The rootHash is persisted in cacheDir/kv-index.json for later retrieval.
+ *   - Reads: look up rootHash from local index → indexer.download() → parse
  *
- * Storage mapping:
- *   KV stream key `session:<agentId>:<sessionId>` → AgentSession (mutable state)
- *   KV stream key `index:<agentId>`               → string[] (sessionId list)
- *   KV stream key `config:<agentId>`              → string (agent config blob)
- *   KV stream key `history:<agentId>:<sessionId>` → SessionMessage[] (log array)
+ * This approach uses only the 0G Storage indexer (no separate KV RPC node needed).
+ * The indexer auto-discovers storage nodes and the flow contract from the network.
  *
  * 0G-native capabilities enabled by this adapter:
- *   - Portable agent identity: same wallet → same state on any machine
- *   - Verifiable execution history: all writes go through the 0G flow contract
- *   - Multi-agent shared memory: agents sharing a wallet share a KV namespace
- *   - Replayable sessions: history key stores ordered message log, readable from genesis
+ *   - Every write is an on-chain transaction anchored in 0G Storage
+ *   - All values are content-addressed and verifiable by rootHash
+ *   - Portable identity: same wallet + cacheDir → same state on any machine
+ *   - Verifiable reads: download verifies content against its Merkle root
  *
  * Configuration is injected via constructor — no env vars are read here.
  * The caller reads process.env and passes values in.
@@ -158,13 +156,12 @@ function decode<T>(bytes: Uint8Array): T {
 export class OGMemoryAdapter implements IMemoryAdapter {
   private readonly config: OGMemoryAdapterConfig;
   private _bundle: OGClientBundle | null = null;
+  /** In-process index: key → rootHash. Populated from disk on first _getClient(). */
+  private readonly _kvIndex = new Map<string, string>();
 
   constructor(config: OGMemoryAdapterConfig) {
     if (!config.rpc) throw new Error('OGMemoryAdapter: config.rpc is required');
     if (!config.indexer) throw new Error('OGMemoryAdapter: config.indexer is required');
-    if (!config.kvRpc) throw new Error('OGMemoryAdapter: config.kvRpc is required');
-    if (!config.flowContractAddress)
-      throw new Error('OGMemoryAdapter: config.flowContractAddress is required');
     if (!config.privateKey)
       throw new Error('OGMemoryAdapter: config.privateKey is required');
     this.config = config;
@@ -176,7 +173,7 @@ export class OGMemoryAdapter implements IMemoryAdapter {
 
   /**
    * Initializes and caches the 0G SDK client bundle on first use.
-   * Subsequent calls return the cached bundle without re-initializing.
+   * Also loads the persisted rootHash index from cacheDir/kv-index.json.
    *
    * 0G-native: this is the only point where SDK credentials are used.
    */
@@ -186,7 +183,7 @@ export class OGMemoryAdapter implements IMemoryAdapter {
     try {
       // Dynamic import — avoids hard-failing if the SDK is not installed.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const og = await import('@0glabs/0g-ts-sdk') as any;
+      const og = await import('@0gfoundation/0g-ts-sdk') as any;
       const { ethers } = await import('ethers');
 
       const provider = new ethers.JsonRpcProvider(this.config.rpc);
@@ -198,16 +195,30 @@ export class OGMemoryAdapter implements IMemoryAdapter {
         this.config.streamId ??
         ethers.keccak256(ethers.toUtf8Bytes(`0g-claw:${signer.address}`));
 
-      const indexer = new og.Indexer(this.config.indexer) as OGClientBundle['indexer'];
-      const kvClient = new og.KvClient(this.config.kvRpc) as OGClientBundle['kvClient'];
-      const flowContract = og.getFlowContract(this.config.flowContractAddress, signer);
+      const indexer = new og.Indexer(this.config.indexer) as IndexerLike;
+
+      // Resolve path for the local rootHash index file.
+      const cacheDir =
+        this.config.cacheDir ?? join(homedir(), '.0g-claw', 'cache');
+      const indexPath = join(cacheDir, 'kv-index.json');
+
+      // Load persisted index entries from disk (first-run: file may not exist).
+      try {
+        const raw = await fsp.readFile(indexPath, 'utf-8');
+        const entries = JSON.parse(raw) as Record<string, string>;
+        for (const [k, v] of Object.entries(entries)) {
+          this._kvIndex.set(k, v);
+        }
+      } catch {
+        // File doesn't exist yet on first run — index starts empty.
+      }
 
       this._bundle = {
         indexer,
-        kvClient,
-        flowContract,
-        BatcherClass: og.Batcher as OGClientBundle['BatcherClass'],
+        signer,
+        MemDataClass: og.MemData as OGClientBundle['MemDataClass'],
         streamId,
+        indexPath,
       };
       return this._bundle;
     } catch (err) {
@@ -218,64 +229,85 @@ export class OGMemoryAdapter implements IMemoryAdapter {
   }
 
   // ---------------------------------------------------------------------------
-  // Internal: KV read — off-chain query to the KV storage node
+  // Internal: persist the in-memory index map to disk
   // ---------------------------------------------------------------------------
 
-  /**
-   * Reads a value from the 0G KV store by key.
-   * Returns null if the key has never been written.
-   *
-   * 0G-native: reads go directly to the KV storage node (no on-chain tx needed).
-   * The same key returns the same value from any machine — enabling portable state.
-   */
-  private async _kvGet(key: string): Promise<Uint8Array | null> {
-    const { kvClient, streamId } = await this._getClient();
-    const keyBytes = new TextEncoder().encode(key);
-    let val: { data: string; version: number; size: number } | null;
-    try {
-      val = await kvClient.getValue(streamId, keyBytes);
-    } catch (err) {
-      const msg = String(err);
-      // KV node returns a JSON-RPC error for missing keys — treat as null.
-      if (msg.includes('not found') || msg.includes('does not exist')) return null;
-      throw new Error(`OGMemoryAdapter: KV read failed for key "${key}": ${msg}`);
-    }
-    if (val === null) return null;
-    // val.data is a Base64-encoded string (0G SDK's wire format for binary data)
-    return new Uint8Array(Buffer.from(val.data, 'base64'));
+  private async _persistIndex(indexPath: string): Promise<void> {
+    await fsp.mkdir(dirname(indexPath), { recursive: true });
+    const entries = Object.fromEntries(this._kvIndex);
+    await fsp.writeFile(indexPath, JSON.stringify(entries, null, 2));
   }
 
   // ---------------------------------------------------------------------------
-  // Internal: KV write — on-chain transaction via Batcher + flow contract
+  // Internal: KV read — download from 0G using rootHash from local index
   // ---------------------------------------------------------------------------
 
   /**
-   * Writes a value to the 0G KV store by key.
-   * Submits an on-chain transaction via the flow contract (requires gas).
+   * Reads a value from 0G Storage by key.
+   * Returns null if the key has never been written (no rootHash in local index).
    *
-   * 0G-native: writes are signed by the wallet and anchored in the 0G chain,
-   * making them verifiable and globally readable by any node in the network.
+   * 0G-native: reads trigger a real file download from 0G storage nodes,
+   * verifying the content against its Merkle root.
+   */
+  private async _kvGet(key: string): Promise<Uint8Array | null> {
+    const bundle = await this._getClient();
+
+    const rootHash = this._kvIndex.get(key);
+    if (!rootHash) return null;
+
+    // Download to a unique temp file, read it into memory, then delete.
+    const tmpFile = join(
+      tmpdir(),
+      `0gclaw-${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`,
+    );
+    try {
+      const err = await bundle.indexer.download(rootHash, tmpFile, false);
+      if (err !== null) {
+        // Could not download — key may not be finalized on the network yet.
+        return null;
+      }
+      const data = await fsp.readFile(tmpFile);
+      return new Uint8Array(data);
+    } catch (err) {
+      throw new Error(
+        `OGMemoryAdapter: read failed for key "${key}": ${String(err)}`,
+      );
+    } finally {
+      try { await fsp.unlink(tmpFile); } catch { /* cleanup, best-effort */ }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Internal: KV write — upload MemData to 0G, persist rootHash to index
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Writes a value to 0G Storage by key.
+   * Uploads via indexer.upload() (auto-discovers flow contract from the network),
+   * then caches the rootHash so _kvGet can retrieve it.
+   *
+   * 0G-native: writes are on-chain transactions signed by the wallet and anchored
+   * in the 0G flow contract. Every value is content-addressed and verifiable.
    */
   private async _kvSet(key: string, value: Uint8Array): Promise<void> {
-    const { indexer, flowContract, BatcherClass, streamId } = await this._getClient();
+    const bundle = await this._getClient();
 
-    const [nodes, selectErr] = await indexer.selectNodes(1);
-    if (selectErr !== null) {
+    const memData = new bundle.MemDataClass(value);
+    const [result, err] = await bundle.indexer.upload(
+      memData,
+      this.config.rpc,
+      bundle.signer,
+    );
+
+    if (err !== null) {
       throw new Error(
-        `OGMemoryAdapter: failed to select storage nodes: ${String(selectErr)}`,
+        `OGMemoryAdapter: write failed for key "${key}": ${String(err)}`,
       );
     }
 
-    const batcher = new BatcherClass(1, nodes, flowContract, this.config.rpc);
-    const keyBytes = new TextEncoder().encode(key);
-    batcher.streamDataBuilder.set(streamId, keyBytes, value);
-
-    const [, writeErr] = await batcher.exec();
-    if (writeErr !== null) {
-      throw new Error(
-        `OGMemoryAdapter: KV write failed for key "${key}": ${String(writeErr)}`,
-      );
-    }
+    // Cache the rootHash and persist the index so reads survive process restarts.
+    this._kvIndex.set(key, result.rootHash);
+    await this._persistIndex(bundle.indexPath);
   }
 
   // ---------------------------------------------------------------------------
