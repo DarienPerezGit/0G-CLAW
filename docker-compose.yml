@@ -1,0 +1,9 @@
+services:
+  agent:
+    build: .
+    env_file: .env
+    volumes:
+      # LocalMemoryAdapter persists session/history data across container restarts.
+      # In a demo scenario this is the "same machine" guarantee before 0G is wired up.
+      - ./data:/app/.0g-claw
+    restart: unless-stopped

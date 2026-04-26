@@ -192,6 +192,39 @@ pnpm example:basic       # correr agente de ejemplo
 
 ---
 
+## 🐳 Running the project
+
+### With Docker
+
+```bash
+cp .env.example .env
+# Fill in .env with real credentials before running
+
+docker compose up --build
+```
+
+Session data and history persist in `./data/` (mounted as `/app/.0g-claw` inside the container).  
+Stop and restart the container — memory survives.
+
+### Without Docker
+
+```bash
+pnpm install
+pnpm build
+pnpm example:basic       # dev mode (tsx, no build needed)
+# or
+pnpm example:basic:prod  # production mode (runs compiled dist/)
+```
+
+### Notes
+
+- Requires `.env` with 0G configuration (see `.env.example`)
+- Falls back to local adapters if 0G is unavailable
+- Docker does NOT run 0G infrastructure — that remains external (testnet or mainnet)
+- `./data/` directory is created automatically by Docker on first run
+
+---
+
 ## 📡 External Integrations
 
 | Servicio | SDK / Método | Credencial requerida |
