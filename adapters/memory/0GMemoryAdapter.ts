@@ -1,5 +1,3 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import type {
   IMemoryAdapter,
   AgentSession,
@@ -7,24 +5,80 @@ import type {
 } from './IMemoryAdapter.js';
 
 // ---------------------------------------------------------------------------
-// 0G Storage SDK types — imported only when 0G is available at runtime.
-// The adapter dynamically requires these to avoid hard failure when the SDK
-// is not configured. All 0G-specific code is isolated behind the _storage
-// and _kv/_log handle pattern below.
+// 0G Storage SDK types (used only after dynamic import in _getClient)
+// ---------------------------------------------------------------------------
+
+// Internal shape of the initialized SDK client bundle — stored after first use.
+interface OGClientBundle {
+  /** 0G Storage Indexer — coordinates uploads via selectNodes() + flow contract */
+  indexer: {
+    selectNodes(
+      expectedReplica: number,
+    ): Promise<[StorageNodeLike[], Error | null]>;
+  };
+  /** KV client — reads from the 0G KV storage node */
+  kvClient: {
+    getValue(
+      streamId: string,
+      key: Uint8Array,
+      version?: number,
+    ): Promise<{ version: number; data: string; size: number } | null>;
+  };
+  /** Flow contract instance (signer embedded) — used by Batcher for on-chain tx */
+  flowContract: unknown;
+  /** Batcher constructor — batch KV writes into a single storage transaction */
+  BatcherClass: new (
+    version: number,
+    clients: StorageNodeLike[],
+    flow: unknown,
+    provider: string,
+  ) => {
+    streamDataBuilder: {
+      set(streamId: string, key: Uint8Array, data: Uint8Array): void;
+    };
+    exec(
+      opts?: unknown,
+    ): Promise<[{ txHash: string; rootHash: string }, Error | null]>;
+  };
+  /** Resolved stream ID — 32-byte hex, unique namespace for this agent wallet */
+  streamId: string;
+}
+
+// Minimal StorageNode interface used by Batcher
+interface StorageNodeLike {
+  [key: string]: unknown;
+}
+
+// ---------------------------------------------------------------------------
+// Config
 // ---------------------------------------------------------------------------
 
 export interface OGMemoryAdapterConfig {
   /**
-   * EVM-compatible RPC endpoint for the 0G chain.
+   * EVM-compatible RPC endpoint for signing and submitting storage transactions.
    * Example: "https://evmrpc-testnet.0g.ai"
    */
   rpc: string;
 
   /**
-   * Storage indexer endpoint — used to locate stored data.
+   * Storage indexer endpoint — used to discover storage nodes.
    * Example: "https://indexer-storage-testnet-standard.0g.ai"
    */
   indexer: string;
+
+  /**
+   * KV storage node RPC endpoint — used for reading KV values.
+   * This is a separate endpoint from the indexer.
+   * Example: "http://3.101.147.150:6789"
+   */
+  kvRpc: string;
+
+  /**
+   * Flow contract address on the EVM chain.
+   * Controls fee payment for storage operations.
+   * Find the testnet address at: https://docs.0g.ai/build-with-0g/storage-sdk
+   */
+  flowContractAddress: string;
 
   /**
    * Wallet private key for signing storage transactions.
@@ -33,7 +87,15 @@ export interface OGMemoryAdapterConfig {
   privateKey: string;
 
   /**
-   * Local cache directory for 0G data during sync operations.
+   * 32-byte hex stream ID for this agent's KV namespace.
+   * If omitted, derived from the wallet address:
+   *   keccak256(utf8("0g-claw:" + walletAddress))
+   * This makes the namespace portable — same wallet → same namespace on any machine.
+   */
+  streamId?: string;
+
+  /**
+   * Local cache directory (reserved for future download caching).
    * Defaults to ~/.0g-claw/cache
    */
   cacheDir?: string;
@@ -79,150 +141,174 @@ function decode<T>(bytes: Uint8Array): T {
  * 0G Storage-backed implementation of IMemoryAdapter.
  *
  * Storage mapping:
- *   KV Store key `session:<agentId>:<sessionId>`   → AgentSession (mutable state)
- *   KV Store key `index:<agentId>`                 → string[] (sessionId list)
- *   KV Store key `config:<agentId>`                → string (agent config blob)
- *   KV Store key `history:<agentId>:<sessionId>`   → SessionMessage[] (append-only log)
+ *   KV stream key `session:<agentId>:<sessionId>` → AgentSession (mutable state)
+ *   KV stream key `index:<agentId>`               → string[] (sessionId list)
+ *   KV stream key `config:<agentId>`              → string (agent config blob)
+ *   KV stream key `history:<agentId>:<sessionId>` → SessionMessage[] (log array)
  *
- * 0G-Native capability: history is stored in the 0G Log Store (append-only,
- * replayable from any machine with the same wallet). This enables:
- *   - Portable agent identity across devices
- *   - Verifiable execution history
- *   - Multi-agent shared memory over the same KV namespace
+ * 0G-native capabilities enabled by this adapter:
+ *   - Portable agent identity: same wallet → same state on any machine
+ *   - Verifiable execution history: all writes go through the 0G flow contract
+ *   - Multi-agent shared memory: agents sharing a wallet share a KV namespace
+ *   - Replayable sessions: history key stores ordered message log, readable from genesis
  *
  * Configuration is injected via constructor — no env vars are read here.
- * The caller is responsible for reading process.env and passing values in.
- *
- * All methods reject with descriptive Errors on SDK or network failure.
+ * The caller reads process.env and passes values in.
  */
 export class OGMemoryAdapter implements IMemoryAdapter {
   private readonly config: OGMemoryAdapterConfig;
-  // 0G SDK client — initialized lazily on first use via _getClient()
-  private _client: unknown = null;
+  private _bundle: OGClientBundle | null = null;
 
   constructor(config: OGMemoryAdapterConfig) {
-    // Validate at construction time — fail fast, not at first use.
     if (!config.rpc) throw new Error('OGMemoryAdapter: config.rpc is required');
     if (!config.indexer) throw new Error('OGMemoryAdapter: config.indexer is required');
-    if (!config.privateKey) throw new Error('OGMemoryAdapter: config.privateKey is required');
+    if (!config.kvRpc) throw new Error('OGMemoryAdapter: config.kvRpc is required');
+    if (!config.flowContractAddress)
+      throw new Error('OGMemoryAdapter: config.flowContractAddress is required');
+    if (!config.privateKey)
+      throw new Error('OGMemoryAdapter: config.privateKey is required');
     this.config = config;
   }
 
   // ---------------------------------------------------------------------------
-  // Internal: 0G SDK client (lazy init)
+  // Internal: SDK client bundle (lazy init, cached after first call)
   // ---------------------------------------------------------------------------
 
   /**
-   * Returns an initialized 0G Storage client.
-   * Throws if the SDK is unavailable or credentials are invalid.
+   * Initializes and caches the 0G SDK client bundle on first use.
+   * Subsequent calls return the cached bundle without re-initializing.
    *
-   * 0G-native: This is the entry point for all verifiable storage operations.
+   * 0G-native: this is the only point where SDK credentials are used.
    */
-  private async _getClient(): Promise<OGStorageClient> {
-    if (this._client !== null) {
-      return this._client as OGStorageClient;
-    }
+  private async _getClient(): Promise<OGClientBundle> {
+    if (this._bundle !== null) return this._bundle;
+
     try {
-      // Dynamic import isolates the 0G SDK dependency — if the package is missing
-      // or misconfigured, only this method fails, not the import of this module.
-      const { ZgFile, Indexer, getFlowContract } = await import('@0glabs/0g-ts-sdk');
+      // Dynamic import — avoids hard-failing if the SDK is not installed.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const og = await import('@0glabs/0g-ts-sdk') as any;
       const { ethers } = await import('ethers');
 
       const provider = new ethers.JsonRpcProvider(this.config.rpc);
       const signer = new ethers.Wallet(this.config.privateKey, provider);
-      const indexer = new Indexer(this.config.indexer);
 
-      const client: OGStorageClient = { ZgFile, indexer, signer, provider, getFlowContract };
-      this._client = client;
-      return client;
+      // Derive stream ID from wallet address if not provided in config.
+      // keccak256("0g-claw:<address>") gives a stable 32-byte namespace per wallet.
+      const streamId: string =
+        this.config.streamId ??
+        ethers.keccak256(ethers.toUtf8Bytes(`0g-claw:${signer.address}`));
+
+      const indexer = new og.Indexer(this.config.indexer) as OGClientBundle['indexer'];
+      const kvClient = new og.KvClient(this.config.kvRpc) as OGClientBundle['kvClient'];
+      const flowContract = og.getFlowContract(this.config.flowContractAddress, signer);
+
+      this._bundle = {
+        indexer,
+        kvClient,
+        flowContract,
+        BatcherClass: og.Batcher as OGClientBundle['BatcherClass'],
+        streamId,
+      };
+      return this._bundle;
     } catch (err) {
-      throw new Error(`OGMemoryAdapter: failed to initialize 0G Storage client: ${String(err)}`);
+      throw new Error(
+        `OGMemoryAdapter: failed to initialize 0G SDK client: ${String(err)}`,
+      );
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Internal: KV read/write via 0G Storage
+  // Internal: KV read — off-chain query to the KV storage node
   // ---------------------------------------------------------------------------
 
   /**
-   * Reads a value from 0G Storage KV by key.
-   * Returns null if the key has no stored data.
+   * Reads a value from the 0G KV store by key.
+   * Returns null if the key has never been written.
    *
-   * 0G-native: Data is retrieved from the decentralized indexer — same result
-   * from any machine with the same wallet.
+   * 0G-native: reads go directly to the KV storage node (no on-chain tx needed).
+   * The same key returns the same value from any machine — enabling portable state.
    */
   private async _kvGet(key: string): Promise<Uint8Array | null> {
-    const client = await this._getClient();
+    const { kvClient, streamId } = await this._getClient();
+    const keyBytes = new TextEncoder().encode(key);
+    let val: { data: string; version: number; size: number } | null;
     try {
-      // The 0G Storage indexer is used to locate and download the data segment
-      // associated with this key. Keys are encoded as UTF-8 and used as the
-      // content identifier.
-      const keyBytes = new TextEncoder().encode(key);
-      // TODO(feat/0g-memory-adapter): Replace with actual 0g-ts-sdk KV read API
-      // once API shape is confirmed against testnet. Current SDK (0.3.3) exposes
-      // upload/download via Indexer; KV namespace will be implemented as a
-      // content-addressed segment with a deterministic root hash per key.
-      void client; // suppress unused warning until SDK call is wired
-      void keyBytes;
-      throw new Error('OGMemoryAdapter._kvGet: 0G SDK integration pending testnet validation');
+      val = await kvClient.getValue(streamId, keyBytes);
     } catch (err) {
-      if (err instanceof Error && err.message.includes('not found')) return null;
-      throw new Error(`OGMemoryAdapter: KV read failed for key "${key}": ${String(err)}`);
+      const msg = String(err);
+      // KV node returns a JSON-RPC error for missing keys — treat as null.
+      if (msg.includes('not found') || msg.includes('does not exist')) return null;
+      throw new Error(`OGMemoryAdapter: KV read failed for key "${key}": ${msg}`);
     }
+    if (val === null) return null;
+    // val.data is a Base64-encoded string (0G SDK's wire format for binary data)
+    return new Uint8Array(Buffer.from(val.data, 'base64'));
   }
 
+  // ---------------------------------------------------------------------------
+  // Internal: KV write — on-chain transaction via Batcher + flow contract
+  // ---------------------------------------------------------------------------
+
   /**
-   * Writes a value to 0G Storage KV by key.
+   * Writes a value to the 0G KV store by key.
+   * Submits an on-chain transaction via the flow contract (requires gas).
    *
-   * 0G-native: Data is uploaded to 0G Storage and pinned via the flow contract.
-   * The root hash is deterministic for the same content — enabling deduplication.
+   * 0G-native: writes are signed by the wallet and anchored in the 0G chain,
+   * making them verifiable and globally readable by any node in the network.
    */
   private async _kvSet(key: string, value: Uint8Array): Promise<void> {
-    const client = await this._getClient();
-    try {
-      void client; // suppress unused warning until SDK call is wired
-      void key;
-      void value;
-      throw new Error('OGMemoryAdapter._kvSet: 0G SDK integration pending testnet validation');
-    } catch (err) {
-      throw new Error(`OGMemoryAdapter: KV write failed for key "${key}": ${String(err)}`);
+    const { indexer, flowContract, BatcherClass, streamId } = await this._getClient();
+
+    const [nodes, selectErr] = await indexer.selectNodes(1);
+    if (selectErr !== null) {
+      throw new Error(
+        `OGMemoryAdapter: failed to select storage nodes: ${String(selectErr)}`,
+      );
+    }
+
+    const batcher = new BatcherClass(1, nodes, flowContract, this.config.rpc);
+    const keyBytes = new TextEncoder().encode(key);
+    batcher.streamDataBuilder.set(streamId, keyBytes, value);
+
+    const [, writeErr] = await batcher.exec();
+    if (writeErr !== null) {
+      throw new Error(
+        `OGMemoryAdapter: KV write failed for key "${key}": ${String(writeErr)}`,
+      );
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Internal: Log append/read — ordered message history via KV array
+  // ---------------------------------------------------------------------------
+
   /**
-   * Appends a value to a 0G Storage Log by key.
-   * The Log Store is append-only — existing entries are immutable.
+   * Appends a value to the ordered log stored under `key`.
+   * Implemented as read-modify-write over a versioned KV key.
    *
-   * 0G-native: This is the replayable execution history primitive.
-   * Any agent with the same wallet can reconstruct full conversation history
-   * by replaying the log from genesis.
+   * TODO(step-2): wire after _kvGet/_kvSet testnet validation.
+   * 0G-native: each version of the history key in the 0G chain is the
+   * replayable execution log — an observer can reconstruct any session from genesis.
    */
   private async _logAppend(key: string, value: Uint8Array): Promise<void> {
-    const client = await this._getClient();
-    try {
-      void client;
-      void key;
-      void value;
-      throw new Error('OGMemoryAdapter._logAppend: 0G SDK integration pending testnet validation');
-    } catch (err) {
-      throw new Error(`OGMemoryAdapter: Log append failed for key "${key}": ${String(err)}`);
-    }
+    void key;
+    void value;
+    throw new Error(
+      'OGMemoryAdapter._logAppend: pending step-2 wiring (confirm after KV checkpoint)',
+    );
   }
 
   /**
-   * Reads all entries from a 0G Storage Log by key, in order.
-   * Returns an empty array if the log has no entries.
+   * Reads all log entries for `key` in order.
+   * Returns an empty array if the log has never been written.
+   *
+   * TODO(step-2): wire after _kvGet/_kvSet testnet validation.
    */
   private async _logRead(key: string): Promise<Uint8Array[]> {
-    const client = await this._getClient();
-    try {
-      void client;
-      void key;
-      throw new Error('OGMemoryAdapter._logRead: 0G SDK integration pending testnet validation');
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('not found')) return [];
-      throw new Error(`OGMemoryAdapter: Log read failed for key "${key}": ${String(err)}`);
-    }
+    void key;
+    throw new Error(
+      'OGMemoryAdapter._logRead: pending step-2 wiring (confirm after KV checkpoint)',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -230,10 +316,9 @@ export class OGMemoryAdapter implements IMemoryAdapter {
   // ---------------------------------------------------------------------------
 
   async saveSession(session: AgentSession): Promise<void> {
-    // Write session state to KV
     await this._kvSet(sessionKey(session.agentId, session.sessionId), encode(session));
 
-    // Update the session index for this agent (read-modify-write under best-effort)
+    // Update index: read-modify-write, idempotent
     const existing = await this._kvGet(sessionIndexKey(session.agentId));
     const ids: string[] = existing ? decode<string[]>(existing) : [];
     if (!ids.includes(session.sessionId)) {
@@ -255,20 +340,17 @@ export class OGMemoryAdapter implements IMemoryAdapter {
   }
 
   async deleteSession(agentId: string, sessionId: string): Promise<void> {
-    // Remove from index (read-modify-write)
+    // 0G Storage has no delete API — removal means removing from the index.
+    // The raw KV entry persists until the storage contract expires.
     const existing = await this._kvGet(sessionIndexKey(agentId));
     if (existing !== null) {
       const ids = decode<string[]>(existing).filter((id) => id !== sessionId);
       await this._kvSet(sessionIndexKey(agentId), encode(ids));
     }
-    // KV entries in 0G Storage are content-addressed — "deletion" means removing
-    // the key from our index. The underlying data segment may persist on the
-    // network until it expires per the storage contract.
-    // No explicit delete call is needed (and 0G Storage has no delete API).
   }
 
   // ---------------------------------------------------------------------------
-  // IMemoryAdapter — Log append-only history
+  // IMemoryAdapter — Log append-only history (wired in step 2)
   // ---------------------------------------------------------------------------
 
   async appendMessage(
@@ -276,8 +358,6 @@ export class OGMemoryAdapter implements IMemoryAdapter {
     sessionId: string,
     message: SessionMessage,
   ): Promise<void> {
-    // 0G-native: each message is a discrete log entry — immutable, ordered,
-    // replayable. This is what makes agent execution verifiable and portable.
     await this._logAppend(historyKey(agentId, sessionId), encode(message));
   }
 
@@ -299,16 +379,4 @@ export class OGMemoryAdapter implements IMemoryAdapter {
     if (raw === null) return null;
     return decode<string>(raw);
   }
-}
-
-// ---------------------------------------------------------------------------
-// Internal type — shape of the initialized 0G SDK client bundle
-// ---------------------------------------------------------------------------
-
-interface OGStorageClient {
-  ZgFile: unknown;
-  indexer: unknown;
-  signer: unknown;
-  provider: unknown;
-  getFlowContract: unknown;
 }
