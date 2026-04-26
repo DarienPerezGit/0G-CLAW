@@ -316,31 +316,74 @@ export class OGMemoryAdapter implements IMemoryAdapter {
 
   /**
    * Appends a value to the ordered log stored under `key`.
-   * Implemented as read-modify-write over a versioned KV key.
    *
-   * TODO(step-2): wire after _kvGet/_kvSet testnet validation.
-   * 0G-native: each version of the history key in the 0G chain is the
-   * replayable execution log — an observer can reconstruct any session from genesis.
+   * ### Current implementation — append-semantics over KV (pragmatic fallback)
+   *
+   * Entries are stored as a base64-encoded JSON array in a single KV key.
+   * Each call does a read-modify-write: fetch the existing array (or start with []),
+   * push the new base64-encoded entry, then rewrite the full array via `_kvSet`.
+   *
+   * **This is NOT a native 0G Log Store.** It emulates append-only semantics
+   * over the mutable KV layer (indexer upload/download). It is intentionally
+   * simple and suitable for hackathon-scale agent history.
+   *
+   * **Future:** Replace with native 0G Log Store once the endpoint/API is stable.
+   * That will give true immutability, cheaper appends, and on-chain replayability
+   * without rewriting the full history on each write.
+   *
+   * 0G-native: every version of the history array is an on-chain transaction —
+   * an observer holding all rootHashes can reconstruct the full session timeline.
    */
   private async _logAppend(key: string, value: Uint8Array): Promise<void> {
-    void key;
-    void value;
-    throw new Error(
-      'OGMemoryAdapter._logAppend: pending step-2 wiring (confirm after KV checkpoint)',
-    );
+    const existing = await this._kvGet(key);
+    let entries: string[];
+
+    if (existing === null) {
+      entries = [];
+    } else {
+      try {
+        const parsed: unknown = JSON.parse(new TextDecoder().decode(existing));
+        if (!Array.isArray(parsed)) throw new TypeError('root value is not an array');
+        entries = parsed as string[];
+      } catch (err) {
+        throw new Error(
+          `OGMemoryAdapter: log at key "${key}" is corrupted and cannot be appended to: ${String(err)}`,
+        );
+      }
+    }
+
+    entries.push(Buffer.from(value).toString('base64'));
+    await this._kvSet(key, new TextEncoder().encode(JSON.stringify(entries)));
   }
 
   /**
    * Reads all log entries for `key` in order.
    * Returns an empty array if the log has never been written.
    *
-   * TODO(step-2): wire after _kvGet/_kvSet testnet validation.
+   * ### Current implementation — append-semantics over KV (pragmatic fallback)
+   *
+   * Deserializes the base64 JSON array written by `_logAppend`.
+   * Throws with a descriptive error if the stored payload cannot be parsed —
+   * callers should treat this as unrecoverable corruption.
+   *
+   * **This is NOT a native 0G Log Store.** See `_logAppend` for the full note.
    */
   private async _logRead(key: string): Promise<Uint8Array[]> {
-    void key;
-    throw new Error(
-      'OGMemoryAdapter._logRead: pending step-2 wiring (confirm after KV checkpoint)',
-    );
+    const existing = await this._kvGet(key);
+    if (existing === null) return [];
+
+    let entries: string[];
+    try {
+      const parsed: unknown = JSON.parse(new TextDecoder().decode(existing));
+      if (!Array.isArray(parsed)) throw new TypeError('root value is not an array');
+      entries = parsed as string[];
+    } catch (err) {
+      throw new Error(
+        `OGMemoryAdapter: log at key "${key}" is corrupted: ${String(err)}`,
+      );
+    }
+
+    return entries.map((b64) => Uint8Array.from(Buffer.from(b64, 'base64')));
   }
 
   // ---------------------------------------------------------------------------

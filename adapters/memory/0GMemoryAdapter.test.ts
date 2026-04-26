@@ -1,5 +1,6 @@
 /**
- * Integration tests for OGMemoryAdapter — step 1: _kvSet + _kvGet.
+ * Integration tests for OGMemoryAdapter — step 1: _kvSet + _kvGet
+ *                                        + step 2: _logAppend + _logRead.
  *
  * These tests run against the 0G testnet (NOT mocks).
  * Per CLAUDE.md: "Un test que pasa con mocks pero falla contra testnet no cuenta."
@@ -20,7 +21,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { config as loadDotenv } from 'dotenv';
 import { OGMemoryAdapter } from './0GMemoryAdapter.js';
 import type { OGMemoryAdapterConfig } from './0GMemoryAdapter.js';
-import type { AgentSession } from './IMemoryAdapter.js';
+import type { AgentSession, SessionMessage } from './IMemoryAdapter.js';
 
 // Load .env before reading process.env.
 // override: true ensures .env values replace any empty/stale vars already in process.env.
@@ -239,5 +240,86 @@ describe.skipIf(SKIP)('OGMemoryAdapter — KV round-trip (testnet)', () => {
       expect(loaded!.sessionId).toBe(portSession.sessionId);
       expect(cfg).toBe(`portable-config-${RUN_ID}`);
     }, 180_000);
+  });
+
+  // --------------------------------------------------------------------------
+  // appendMessage / loadHistory — log semantics over KV (step 2)
+  //
+  // NOTE: Current implementation uses append-semantics over KV (read-modify-write
+  // on a base64 JSON array). This is NOT a native 0G Log Store. It is a pragmatic
+  // fallback for hackathon-scale use. See _logAppend JSDoc in the adapter for details.
+  // --------------------------------------------------------------------------
+
+  describe('appendMessage / loadHistory (log semantics over KV)', () => {
+    const LOG_AGENT = `log-agent-${RUN_ID}`;
+
+    it('appends 1 entry and reads it back', async () => {
+      const sessId = `log-1-${RUN_ID}`;
+      const msg: SessionMessage = {
+        role: 'user',
+        content: `hello-${RUN_ID}`,
+        timestamp: Date.now(),
+      };
+
+      await adapter.appendMessage(LOG_AGENT, sessId, msg);
+
+      const history = await adapter.loadHistory(LOG_AGENT, sessId);
+      expect(history).toHaveLength(1);
+      expect(history[0]!.content).toBe(`hello-${RUN_ID}`);
+    }, 120_000);
+
+    it('preserves order across 3 appends', async () => {
+      const sessId = `log-3-${RUN_ID}`;
+      const contents = ['first', 'second', 'third'];
+
+      for (const content of contents) {
+        await adapter.appendMessage(LOG_AGENT, sessId, {
+          role: 'user',
+          content,
+          timestamp: Date.now(),
+        });
+      }
+
+      const history = await adapter.loadHistory(LOG_AGENT, sessId);
+      expect(history).toHaveLength(3);
+      expect(history[0]!.content).toBe('first');
+      expect(history[1]!.content).toBe('second');
+      expect(history[2]!.content).toBe('third');
+    }, 180_000);
+
+    it('returns empty array for missing log', async () => {
+      const history = await adapter.loadHistory(LOG_AGENT, `never-written-${RUN_ID}`);
+      expect(history).toEqual([]);
+    }, 30_000);
+
+    it('throws on corrupted log payload', async () => {
+      const sessId = `log-corrupt-${RUN_ID}`;
+      const histKey = `history:${LOG_AGENT}:${sessId}`;
+
+      // Bypass the public API to inject a non-parseable payload into the KV layer.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (adapter as any)._kvSet(histKey, new TextEncoder().encode('not-valid-json!!!'));
+
+      await expect(adapter.loadHistory(LOG_AGENT, sessId)).rejects.toThrow(/corrupted/);
+    }, 120_000);
+
+    it('second adapter reads same log (portability)', async () => {
+      const portLogAgent = `log-port-${RUN_ID}`;
+      const sessId = `log-port-sess-${RUN_ID}`;
+      const msg: SessionMessage = {
+        role: 'assistant',
+        content: `portable-log-${RUN_ID}`,
+        timestamp: Date.now(),
+      };
+
+      await adapter.appendMessage(portLogAgent, sessId, msg);
+
+      // New instance — same wallet, same cacheDir (default ~/.0g-claw/cache)
+      const adapter2 = new OGMemoryAdapter(makeConfig());
+      const history = await adapter2.loadHistory(portLogAgent, sessId);
+
+      expect(history).toHaveLength(1);
+      expect(history[0]!.content).toBe(`portable-log-${RUN_ID}`);
+    }, 120_000);
   });
 });
