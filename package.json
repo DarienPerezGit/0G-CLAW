@@ -1,0 +1,32 @@
+{
+  "name": "0g-claw",
+  "version": "0.1.0",
+  "description": "OpenClaw with decentralized memory and compute via 0G Protocol",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch",
+    "example:basic": "tsx examples/basic-agent/agent.ts",
+    "example:basic:prod": "node dist/examples/basic-agent/agent.js",
+    "check:testnet": "tsx scripts/check-testnet.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@0glabs/0g-ts-sdk": "^0.3.3",
+    "@ensdomains/ensjs": "^4.0.2",
+    "ethers": "^6.13.5",
+    "openai": "^4.97.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.9.0"
+}
