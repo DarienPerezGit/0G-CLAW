@@ -25,7 +25,7 @@
  *     ENABLE_0G_COMPUTE_TESTS=true pnpm test adapters/compute/0GComputeAdapter.test.ts
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { config as loadDotenv } from 'dotenv';
 import { OGComputeAdapter } from './0GComputeAdapter.js';
 import type { OGComputeAdapterConfig } from './0GComputeAdapter.js';
@@ -263,6 +263,11 @@ describe.skipIf(SKIP_INTEGRATION)(
       adapter = new OGComputeAdapter(makeConfig());
     });
 
+    // Testnet rate limit: 10 req/min. Add a 7s pause before each test to stay under the limit.
+    beforeEach(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 7_000));
+    });
+
     it('healthCheck() returns true', async () => {
       const healthy = await adapter.healthCheck();
       expect(healthy).toBe(true);
@@ -326,6 +331,8 @@ describe.skipIf(SKIP_INTEGRATION)(
 
     it('consecutive calls reuse the same broker (no re-init)', async () => {
       const r1 = await adapter.chat([userMsg('say A')], { maxTokens: 5 });
+      // Testnet rate limit is 10 req/min — pause between consecutive requests.
+      await new Promise((resolve) => setTimeout(resolve, 7_000));
       const r2 = await adapter.chat([userMsg('say B')], { maxTokens: 5 });
       // Both should use the same model — broker was not re-initialized
       expect(r1.model).toBe(r2.model);
