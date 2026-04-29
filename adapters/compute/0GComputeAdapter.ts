@@ -4,6 +4,7 @@ import type {
   InferenceOptions,
   InferenceResult,
 } from './IComputeAdapter.js';
+import { createRequire } from 'module';
 
 // ---------------------------------------------------------------------------
 // 0G Compute SDK types (typed after dynamic import in _getBroker)
@@ -139,9 +140,12 @@ export class OGComputeAdapter implements IComputeAdapter {
     if (this._bundle !== null) return this._bundle;
 
     try {
-      // Dynamic import — avoids hard-failing at module load if SDK is unavailable.
+      // Use CJS interop — the ESM bundle of @0glabs/0g-serving-broker has broken
+      // named exports in Node ≥22. The CJS build works correctly.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sdk = await import('@0glabs/0g-serving-broker') as any;
+      const _require = createRequire(import.meta.url);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sdk = _require('@0glabs/0g-serving-broker') as any;
       const { ethers } = await import('ethers');
 
       const provider = new ethers.JsonRpcProvider(this.config.rpc);
