@@ -182,14 +182,21 @@ import { OGComputeAdapter } from '0g-claw/adapters/compute';
 
 const compute = new OGComputeAdapter({
   endpoint: process.env.OG_COMPUTE_ENDPOINT,
-  model: process.env.OG_COMPUTE_MODEL, // 'qwen3-plus' | 'GLM-5-FP8'
+  model: process.env.OG_COMPUTE_MODEL, // 'qwen/qwen-2.5-7b-instruct'
 });
 ```
 
-Available models on 0G Compute (as of April 2026):
-- `qwen3.6-plus`
-- `GLM-5-FP8`
-- `qwen3-VL` (multimodal)
+Active provider on Galileo testnet (validated April 2026):
+- `qwen/qwen-2.5-7b-instruct` via provider `0xa48f01287233509FD694a22Bf840225062E67836`
+- Endpoint: `https://compute-network-6.integratenetwork.work/v1/proxy`
+
+To set up the broker (one-time, requires funded wallet):
+
+```bash
+pnpm setup:broker
+```
+
+> **Note:** Basic-agent full 0G mode (both `MEMORY_ADAPTER=0g` and `COMPUTE_ADAPTER=0g`) depends on Galileo Storage node availability. If the network is slow, storage uploads may stall. For demos, prefer pre-existing sessions or run with `COMPUTE_ADAPTER=0g` alone.
 
 ---
 
@@ -207,24 +214,32 @@ This is optional but qualifies for the ENS track ($2,500).
 
 ---
 
-## Roadmap (Hackathon Scope)
+## Status (April 2026)
 
-### Week 1 — Core (Days 1–7)
-- [ ] `IMemoryAdapter` interface defined
-- [ ] `0GMemoryAdapter` — KV write/read for sessions
-- [ ] `0GMemoryAdapter` — Log append for history
-- [ ] `IComputeAdapter` interface defined
-- [ ] `0GComputeAdapter` — working inference via proxy API
-- [ ] OpenClaw integration — adapters hooked into OpenClaw session layer
-- [ ] Basic example agent running end-to-end
+| Component | Status |
+|---|---|
+| `IMemoryAdapter` interface | ✅ defined |
+| `0GMemoryAdapter` — KV write/read for sessions | ✅ live on Galileo testnet |
+| `0GMemoryAdapter` — Log append for history | ✅ live on Galileo testnet |
+| `IComputeAdapter` interface | ✅ defined |
+| `0GComputeAdapter` — inference via 0G Compute proxy | ✅ 21/21 live tests passing |
+| Compute broker — ledger funded, provider acknowledged | ✅ 3 OG ledger, provider `0xa48f01…` |
+| OpenClaw integration — adapters hooked into session layer | ✅ working example agent |
+| Basic example agent running end-to-end | ✅ (`examples/basic-agent/`) |
+| Fallback to local adapters | ✅ `LocalMemoryAdapter` + `OpenAIComputeAdapter` |
+| ENS identity at agent creation | 🔜 planned |
+| Multi-device test (same wallet, two machines) | 🔜 planned |
+| Demo video (under 3 min) | 🔜 planned |
 
-### Week 2 — Polish (Days 8–12)
-- [ ] ENS identity at agent creation
-- [ ] Multi-device test (same agent, two machines, same memory)
-- [ ] Error handling + fallback to local adapters
-- [ ] Architecture diagram
-- [ ] Demo video (under 3 min)
-- [ ] Docs + README finalized
+### Demo Strategy
+
+For live demos, use this order to avoid network instability blocking the presentation:
+
+1. **Primary**: Show 0G Memory persistence with a pre-existing session + local compute fallback
+2. **Proof section**: Show `0GComputeAdapter` live test output (21/21 passed), provider/broker setup, `verificationHash` from test results
+3. **Optional live**: Run `COMPUTE_ADAPTER=0g` only if `pnpm run check:testnet` shows the network is healthy
+
+This prevents a slow Galileo Storage node from blocking a demo that is technically already fully validated.
 
 ---
 
