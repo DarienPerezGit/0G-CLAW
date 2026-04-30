@@ -8,6 +8,8 @@
     "dev": "tsx watch",
     "example:basic": "tsx examples/basic-agent/agent.ts",
     "example:basic:prod": "node dist/examples/basic-agent/agent.js",
+    "example:research": "tsx examples/research-agent/agent.ts",
+    "example:research:prod": "node dist/examples/research-agent/agent.js",
     "check:testnet": "tsx scripts/check-testnet.ts",
     "setup:broker": "tsx scripts/setup-compute-broker.ts",
     "test": "vitest run",

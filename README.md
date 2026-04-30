@@ -75,9 +75,14 @@ The adapter interfaces are the extension point. You can swap `0GMemoryAdapter` f
 │       ├── OpenAIComputeAdapter.ts # Fallback
 │       └── IComputeAdapter.ts      # Interface
 ├── examples/
-│   └── basic-agent/                # Working example agent using the framework
+│   ├── basic-agent/                # Conversational chat agent (chat loop)
+│   │   ├── agent.ts
+│   │   └── README.md
+│   └── research-agent/             # Topic-driven research pipeline (plan → research → synthesize)
 │       ├── agent.ts
-│       └── README.md
+│       ├── README.md
+│       ├── lib/                    # topicId, prompts, types
+│       └── tools/                  # WikipediaSearchTool, MemoryRecallTool, ITool
 ├── scripts/
 │   └── setup.sh                    # Testnet setup helper
 ├── docs/
@@ -135,13 +140,19 @@ OG_COMPUTE_MODEL=qwen3-plus         # or GLM-5-FP8
 OPENCLAW_WORKSPACE=~/.openclaw
 ```
 
-### 4. Run the example agent
+### 4. Run an example agent
+
+The repo ships **two reference agents** built on the same adapter layer — proof that 0G-Claw is a framework, not a single-use codebase.
 
 ```bash
+# Conversational chat loop — basic-agent
 pnpm example:basic
+
+# Topic-driven research pipeline — research-agent
+RESEARCH_TOPIC="0G Protocol architecture" pnpm example:research
 ```
 
-The agent will boot, load its memory from 0G Storage, and be ready. Kill the process, run it again on a different machine with the same wallet — memory is still there.
+Both agents share the same `IMemoryAdapter` and `IComputeAdapter`. Both fall back to local adapters when 0G credentials are missing. Kill either process, run it again on a different machine with the same wallet — memory is still there. See [`examples/basic-agent/README.md`](examples/basic-agent/README.md) and [`examples/research-agent/README.md`](examples/research-agent/README.md) for details.
 
 ---
 
