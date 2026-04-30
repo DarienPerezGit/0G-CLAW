@@ -40,6 +40,7 @@ Given a research topic, the agent:
 | `RESEARCH_TOPIC="..." pnpm example:research` | local filesystem | local stub (echo) | Smoke test the pipeline; **report will be nonsense because the local compute is a stub** |
 | `RESEARCH_TOPIC="..." COMPUTE_ADAPTER=0g pnpm example:research` | local filesystem | 0G Compute | Real research, single machine |
 | `RESEARCH_TOPIC="..." MEMORY_ADAPTER=0g COMPUTE_ADAPTER=0g pnpm example:research` | 0G Storage | 0G Compute | **Demo mode** — full decentralized stack, portable across machines |
+| `RESEARCH_TOPIC="..." pnpm example:research:inspect` | (any) | none | **Read-only viewer** — print cached findings, hashes, and report without re-running the pipeline (see [Inspect mode](#inspect-mode)) |
 
 > **Important:** with `COMPUTE_ADAPTER=local`, the agent prints a warning at boot. The local compute adapter is an echo stub — it exists for structural smoke tests, not for actual reasoning. For meaningful output, use 0G Compute.
 
@@ -97,6 +98,49 @@ Same dispatch pattern as basic-agent, plus one required variable:
   To resume / reprint this report on any machine with the same wallet:
     RESEARCH_TOPIC="0G Protocol architecture" MEMORY_ADAPTER=0g pnpm example:research
 ```
+
+---
+
+## Inspect mode
+
+`inspect.ts` is a read-only companion that loads a topic's cached research and prints findings, verification hashes, and the report — **without invoking compute or any tools**. It's the most direct demonstration of "shared memory across agents": the inspecting process never participates in the research, it only queries memory.
+
+```bash
+RESEARCH_TOPIC="0G Protocol architecture" pnpm example:research:inspect
+RESEARCH_TOPIC="..." MEMORY_ADAPTER=0g pnpm example:research:inspect
+```
+
+Output:
+
+```
+Summary
+-------
+  Sub-questions planned : 4
+  Findings (KV snapshot): 4
+  Findings (Log Store)  : 4
+  Report cached         : yes
+  Synthesis verified    : yes (0xabc123…)
+
+Findings
+--------
+  [1] What is the high-level architecture of 0G Protocol?
+        source : wikipedia:0G_Network
+        summary: 0G Network is a decentralized AI infrastructure protocol...
+        hash   : 0xabcdef… (TeeML proof from acknowledged provider)
+        time   : 2026-04-30T16:21:30.123Z
+
+  ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Report — 0G Protocol architecture
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+<5-paragraph synthesis with [1], [2] citations>
+```
+
+Demo idea: run the agent on machine A, then run inspect on machine B. Same wallet, same topic — B sees everything A produced, including every per-finding `verificationHash`, without re-doing any work.
+
+If the snapshot and log are out of sync (durability scenario from §13 of the plan doc), inspect prints a warning indicating the next agent run will recover from the log.
 
 ---
 
