@@ -31,4 +31,10 @@ export interface ResearchState {
   subQuestions: string[];
   findings: Finding[];
   reportMarkdown: string | null;
+  /**
+   * verificationHash returned by the compute adapter on the synthesis call.
+   * Defined only when the report was produced by 0G Compute. Persisted so the
+   * report's provenance survives across resumes and machines.
+   */
+  synthesisVerificationHash: string | undefined;
 }

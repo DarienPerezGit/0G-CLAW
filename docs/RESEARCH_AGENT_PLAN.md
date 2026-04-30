@@ -1,6 +1,6 @@
 # Plan — Research Agent (`examples/research-agent/`)
 
-> **Status:** plan, awaiting team approval before implementation.
+> **Status:** ✅ implemented. See commit history on `feat/research-agent` and the [implementation README](../examples/research-agent/README.md). Plan kept here as the design rationale for review.
 > **Branch:** `feat/research-agent` (off `main`, parallel to `chore/demo-readiness`)
 > **Author:** Juan
 > **Audience:** Darien (review), ETHGlobal judges (downstream)
@@ -408,14 +408,25 @@ This fits in one focused session. No blocking dependencies on Darien's work.
 
 ---
 
-## 12. Open questions for Darien
+## 12. Decisions confirmed
 
-Before I start coding, would like a yes/no on each:
+The following decisions were proposed pre-implementation and approved by Juan. Recorded here so reviewers can see the design rationale:
 
-1. **Branch base** — `feat/research-agent` from `main`, parallel to `chore/demo-readiness`. OK?
-2. **Tool location** — tools live inside `examples/research-agent/tools/`, **not** in `adapters/`. OK to keep them out of the framework for this PR?
-3. **Wikipedia as the only tool** — sufficient, or do you want a second tool (memory recall already planned, but anything else)?
-4. **`package.json` scripts** — adding `example:research` and `example:research:prod`. OK with these touches to a "core" file?
-5. **Docs updates** — should I update `docs/SUBMISSION.md` and `docs/ARCHITECTURE.md` in this PR (those files only exist on `chore/demo-readiness`)? My suggestion: skip in this branch, do them after both branches are merged.
+| Decision | Outcome |
+|---|---|
+| Branch base | `feat/research-agent` off `main`, parallel to `chore/demo-readiness` |
+| Tool location | Inside `examples/research-agent/tools/` — NOT in `adapters/`. Tools are not (yet) a framework primitive |
+| External tool surface | `WikipediaSearchTool` only; `MemoryRecallTool` exported as a building block but not wired into the main pipeline |
+| `package.json` change | Two additive script entries (`example:research`, `example:research:prod`); no dependency changes |
+| Cross-branch docs | `docs/SUBMISSION.md` and `docs/ARCHITECTURE.md` not updated here — those files live on `chore/demo-readiness`. Will be reconciled after both branches merge to `main` |
 
-Default if no objection: yes to all, doc updates skipped per #5.
+## 13. Post-implementation hardening (April 2026)
+
+Discovered during a self-review pass after the initial commit:
+
+- **Durability fix** — findings are persisted in two steps (Log append, then KV save). On boot, the agent now cross-checks the snapshot against the Log: if the Log has more findings than the snapshot, state is recovered from the Log (which is the authoritative source for replayable execution).
+- **Synthesis hash persisted** — `synthesisVerificationHash` was added to `ResearchState` so the report's provenance survives across resumes and machines.
+- **`tryParseJSON` extracted** — moved from `agent.ts` into `lib/jsonExtract.ts` with its own test file (11 cases covering bare JSON, fenced JSON, embedded JSON, malformed inputs).
+- **Factory for fresh state** — `newResearchState()` replaces `{ ...initialState }` to avoid shared array references across state instances.
+
+These are additive refinements; no interface or external-behavior changes. All tests still pass after the changes.

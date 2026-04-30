@@ -41,6 +41,7 @@ import type {
 
 import { topicIdFromString } from './lib/topicId.js';
 import { planPrompt, extractPrompt, synthesizePrompt } from './lib/prompts.js';
+import { tryParseJSON } from './lib/jsonExtract.js';
 import type { Finding, ResearchState } from './lib/researchTypes.js';
 import { WikipediaSearchTool } from './tools/WikipediaSearchTool.js';
 
@@ -139,13 +140,16 @@ console.log(`[agent] compute model: ${compute.getModel()}\n`);
 // Session: load prior research state if any
 // ---------------------------------------------------------------------------
 
-const initialState: ResearchState = {
-  topic: TOPIC,
-  topicId: TOPIC_ID,
-  subQuestions: [],
-  findings: [],
-  reportMarkdown: null,
-};
+function newResearchState(): ResearchState {
+  return {
+    topic: TOPIC,
+    topicId: TOPIC_ID,
+    subQuestions: [],
+    findings: [],
+    reportMarkdown: null,
+    synthesisVerificationHash: undefined,
+  };
+}
 
 function isStateMessage(m: SessionMessage): boolean {
   return m.role === 'system' && m.content.startsWith('{');
@@ -160,16 +164,19 @@ if (loaded !== null) {
   const stateMsg = session.messages.find(isStateMessage);
   if (stateMsg !== undefined) {
     try {
-      state = JSON.parse(stateMsg.content) as ResearchState;
+      const parsed = JSON.parse(stateMsg.content) as Partial<ResearchState>;
+      // Hydrate with defaults for any fields the snapshot is missing
+      // (e.g. older snapshots predating synthesisVerificationHash).
+      state = { ...newResearchState(), ...parsed };
     } catch {
       console.warn('[agent] prior session state could not be parsed — starting fresh');
-      state = { ...initialState };
+      state = newResearchState();
     }
   } else {
-    state = { ...initialState };
+    state = newResearchState();
   }
 } else {
-  state = { ...initialState };
+  state = newResearchState();
   session = {
     sessionId: SESSION_ID,
     agentId: AGENT_ID,
@@ -178,6 +185,35 @@ if (loaded !== null) {
     messages: [],
     metadata: { topic: TOPIC, topicId: TOPIC_ID, kind: 'research' },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Durability: cross-check the KV snapshot against the append-only Log.
+//
+// Because findings are persisted in two steps — Log append, then KV save —
+// a crash or storage hiccup between them can leave the Log ahead of the
+// snapshot. On boot, if the Log holds more findings than the snapshot
+// claims, we recover from the Log (which is the source of truth for
+// replayable execution).
+// ---------------------------------------------------------------------------
+
+{
+  const log = await memory.loadHistory(AGENT_ID, SESSION_ID);
+  const logFindings: Finding[] = [];
+  for (const msg of log) {
+    if (msg.role !== 'assistant') continue;
+    try {
+      logFindings.push(JSON.parse(msg.content) as Finding);
+    } catch {
+      // not a JSON-encoded finding (plain assistant message), skip
+    }
+  }
+  if (logFindings.length > state.findings.length) {
+    console.warn(
+      `[agent] Log Store has ${logFindings.length} finding(s) but state snapshot only ${state.findings.length} — recovering from log.`,
+    );
+    state.findings = logFindings;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -220,29 +256,6 @@ async function llmCall(
   const messages: ChatMessage[] = [{ role: 'user', content: prompt }];
   const result = await compute.chat(messages, { maxTokens });
   return { content: result.content, verificationHash: result.verificationHash };
-}
-
-function tryParseJSON<T>(text: string): T | null {
-  // Strip common code-fence wrappers — models often add ```json
-  const cleaned = text
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/i, '')
-    .trim();
-
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    // Fall back to extracting the first {...} block
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match !== null) {
-      try {
-        return JSON.parse(match[0]) as T;
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -351,12 +364,15 @@ try {
   if (state.reportMarkdown === null) {
     const synth = await synthesize();
     state.reportMarkdown = synth.report;
+    state.synthesisVerificationHash = synth.verificationHash;
     await persistState();
     if (synth.verificationHash !== undefined) {
       console.log(`  → synthesis verificationHash: ${synth.verificationHash}\n`);
     } else {
       console.log();
     }
+  } else if (state.synthesisVerificationHash !== undefined) {
+    console.log(`[agent] cached synthesis verificationHash: ${state.synthesisVerificationHash}\n`);
   }
 } catch (err: unknown) {
   const message = err instanceof Error ? err.message : String(err);
