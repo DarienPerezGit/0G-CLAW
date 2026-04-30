@@ -2,9 +2,33 @@
 
 > **OpenClaw, but your agent never forgets — and never depends on Big Tech.**
 
-0G-Claw is a fork/extension of [OpenClaw](https://github.com/openclaw/openclaw) that replaces its centralized dependencies with [0G's](https://0g.ai) decentralized infrastructure stack. Session memory moves from local disk to **0G Storage (KV/Log)**. LLM inference moves from OpenAI/Anthropic to **0G Compute** (Qwen3, GLM-5). The result: a portable, sovereign AI assistant that runs the same — from any machine, forever.
+0G-Claw is a fork of [OpenClaw](https://github.com/openclaw/openclaw) that replaces its centralized dependencies with [0G's](https://0g.ai) decentralized infrastructure stack:
 
-Built for [ETHGlobal Open Agents](https://ethglobal.com/events/openagents) — Track: 🛠️ Best Agent Framework, Tooling & Core Extensions.
+- **Memory** moves from local disk to **0G Storage (KV/Log)** — sessions and conversation history are portable across any device
+- **Inference** moves from OpenAI / Anthropic to **0G Compute** — open models (Qwen2.5, GLM, Gemma) with verifiable, signed responses
+- **Identity** (planned) is anchored on **ENS** — agents are addressable by name, not wallet hash
+
+Built for [ETHGlobal Open Agents](https://ethglobal.com/events/openagents).
+
+---
+
+## What works today (April 2026)
+
+| Component | Status | Notes |
+|---|---|---|
+| `IMemoryAdapter` / `IComputeAdapter` interfaces | ✅ | Stable contracts; adapters are the only files touching 0G infra |
+| `0GMemoryAdapter` — KV write/read for sessions | ✅ Live on Galileo testnet | Integration tests run against real testnet, not mocks |
+| `0GMemoryAdapter` — Log append/read for history | ✅ Live on Galileo testnet | Same |
+| `0GComputeAdapter` — inference via 0G Compute proxy | ✅ 21/21 live tests passing | Uses `@0glabs/0g-serving-broker` |
+| Compute broker — ledger funded, provider acknowledged | ✅ 3 OG funded | Provider `0xa48f01287233509FD694a22Bf840225062E67836` (qwen/qwen-2.5-7b-instruct) |
+| `LocalMemoryAdapter` + `OpenAIComputeAdapter` fallbacks | ✅ | Used automatically when 0G env vars are missing |
+| Basic agent end-to-end (`examples/basic-agent/`) | ✅ | Adapter selection via `MEMORY_ADAPTER` / `COMPUTE_ADAPTER` env vars |
+| Docker — single-container demo with persistent volume | ✅ | `./data/` survives `docker compose down` |
+| ENS identity at agent creation | 🔜 planned | Targets ENS AI Agents track |
+| Multi-device test (same wallet, two machines) | 🔜 planned | Final validation step before submission |
+| Demo video (under 3 min) | 🔜 planned | See `docs/DEMO_SCRIPT.md` |
+
+> **TL;DR for reviewers:** Both 0G adapters are live and tested against the Galileo testnet. The full stack (`MEMORY_ADAPTER=0g COMPUTE_ADAPTER=0g`) depends on Galileo Storage node availability — see [Demo flow](#demo-flow) for the recommended live-demo order.
 
 ---
 
@@ -15,7 +39,7 @@ OpenClaw is great. But it has two hard dependencies:
 | Problem | OpenClaw Today | 0G-Claw |
 |---|---|---|
 | **Memory** | Lives in `~/.openclaw/agents/<id>/sessions/*.jsonl` — lose the disk, lose the agent | Persists in **0G Storage KV/Log** — portable across any device |
-| **Inference** | Routes to OpenAI / Anthropic APIs — centralized, censorable, opaque | Routes to **0G Compute** — open models (Qwen3, GLM-5), verifiable inference |
+| **Inference** | Routes to OpenAI / Anthropic APIs — centralized, censorable, opaque | Routes to **0G Compute** — open models, verifiable inference, signed responses |
 
 **The pitch:** Same agent, any machine, no vendor lock-in.
 
@@ -39,66 +63,71 @@ OpenClaw is great. But it has two hard dependencies:
 │  │  Adapter     │  │  Adapter      │               │
 │  │              │  │               │               │
 │  │ KV Store:    │  │ Models:       │               │
-│  │ - sessions   │  │ - qwen3-plus  │               │
-│  │ - agent state│  │ - GLM-5-FP8   │               │
-│  │              │  │               │               │
-│  │ Log Store:   │  │ Endpoint:     │               │
-│  │ - history    │  │ 0G proxy API  │               │
+│  │ - sessions   │  │ - qwen-2.5-7b │               │
+│  │ - agent state│  │ - gpt-oss-20b │               │
+│  │              │  │ - gemma-3-27b │               │
+│  │ Log Store:   │  │               │               │
+│  │ - history    │  │ Endpoint:     │               │
+│  │              │  │ 0G proxy API  │               │
 │  └──────┬───────┘  └──────┬────────┘               │
 │         │                 │                        │
 └─────────┼─────────────────┼────────────────────────┘
           ▼                 ▼
    ┌─────────────┐   ┌─────────────┐
    │  0G Storage │   │  0G Compute │
-   │  (mainnet / │   │  (mainnet / │
+   │  (Galileo   │   │  (Galileo   │
    │   testnet)  │   │   testnet)  │
    └─────────────┘   └─────────────┘
 ```
 
-### Key Design Principle
+The adapter interfaces are the extension point. You can swap `0GMemoryAdapter` for `LocalMemoryAdapter` (or `RedisMemoryAdapter`, etc.) without touching OpenClaw. Same for compute.
 
-The adapter interfaces are the extension point. You can swap `0GMemoryAdapter` for `RedisMemoryAdapter` or `LocalMemoryAdapter` without touching OpenClaw core. Same for compute: swap `0GComputeAdapter` for `OllamaAdapter` or `OpenAIAdapter`. The agent doesn't know the difference.
+For deeper architecture details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
-## Repo Structure
+## Repo structure
 
 ```
 0g-claw/
 ├── adapters/
 │   ├── memory/
 │   │   ├── 0GMemoryAdapter.ts      # 0G Storage KV/Log implementation
-│   │   ├── LocalMemoryAdapter.ts   # Fallback (original OpenClaw behavior)
-│   │   └── IMemoryAdapter.ts       # Interface — swap anything here
+│   │   ├── LocalMemoryAdapter.ts   # Fallback (writes to ~/.0g-claw)
+│   │   └── IMemoryAdapter.ts       # Contract — extension point
 │   └── compute/
-│       ├── 0GComputeAdapter.ts     # 0G Compute / proxy API
+│       ├── 0GComputeAdapter.ts     # 0G Compute via @0glabs/0g-serving-broker
 │       ├── OpenAIComputeAdapter.ts # Fallback
-│       └── IComputeAdapter.ts      # Interface
+│       └── IComputeAdapter.ts      # Contract
 ├── examples/
-│   └── basic-agent/                # Working example agent using the framework
+│   └── basic-agent/                # End-to-end demo agent
 │       ├── agent.ts
 │       └── README.md
 ├── scripts/
-│   └── setup.sh                    # Testnet setup helper
+│   ├── check-testnet.ts            # Pre-flight: verifies 0G connectivity
+│   └── setup-compute-broker.ts     # One-time broker funding helper
 ├── docs/
-│   └── architecture.md
-├── openclaw/                       # OpenClaw as git submodule
+│   ├── ARCHITECTURE.md
+│   ├── DEMO_SCRIPT.md
+│   └── SUBMISSION.md
+├── openclaw/                       # OpenClaw as git submodule (do not modify)
+├── Dockerfile
+├── docker-compose.yml
 ├── .env.example
-├── package.json
-└── README.md                       # This file
+└── package.json
 ```
 
 ---
 
-## Quickstart
+## Quickstart (no Docker)
 
-### Prerequisites
+### 1. Prerequisites
 
-- Node.js 18+
+- Node.js 18+ (tested on 20)
 - pnpm (`npm install -g pnpm`)
-- A wallet with 0G testnet tokens (see Setup below)
+- A wallet with 0G testnet tokens — see [build.0g.ai](https://build.0g.ai) and the [faucet](https://faucet.0g.ai)
 
-### 1. Clone & install
+### 2. Clone & install
 
 ```bash
 git clone https://github.com/DarienPerezGit/0G-CLAW.git
@@ -106,182 +135,166 @@ cd 0G-CLAW
 pnpm install
 ```
 
-### 2. Get 0G testnet tokens
-
-1. Go to [build.0g.ai](https://build.0g.ai) and create an account
-2. Connect your wallet (MetaMask or similar EVM wallet)
-3. Use the faucet to get testnet tokens on 0G Chain
-4. Copy your private key — you'll need it in `.env`
-
 ### 3. Configure environment
 
 ```bash
 cp .env.example .env
+# Edit .env and fill in OG_PRIVATE_KEY and OG_COMPUTE_PROVIDER (see .env.example for active providers)
 ```
 
-Edit `.env`:
+Minimum required for **0G memory**: `OG_STORAGE_RPC`, `OG_STORAGE_INDEXER`, `OG_PRIVATE_KEY`.
+Additional for **0G compute**: `OG_COMPUTE_PROVIDER` + a funded broker (see below).
+With **no env vars set**, the agent runs against `LocalMemoryAdapter` + `OpenAIComputeAdapter` (or just local compute if no `OPENAI_API_KEY`).
 
-```env
-# 0G Storage
-OG_STORAGE_RPC=https://evmrpc-testnet.0g.ai
-OG_STORAGE_INDEXER=https://indexer-storage-testnet-standard.0g.ai
-OG_PRIVATE_KEY=your_wallet_private_key
-
-# 0G Compute
-OG_COMPUTE_ENDPOINT=https://api.0g.ai/v1
-OG_COMPUTE_MODEL=qwen3-plus         # or GLM-5-FP8
-
-# OpenClaw (keep your existing config)
-OPENCLAW_WORKSPACE=~/.openclaw
-```
-
-### 4. Run the example agent
+### 4. Verify connectivity
 
 ```bash
-pnpm example:basic
+pnpm check:testnet
 ```
 
-The agent will boot, load its memory from 0G Storage, and be ready. Kill the process, run it again on a different machine with the same wallet — memory is still there.
+This confirms RPC, indexer, balance, and provider reachability before you spend a session.
+
+### 5. Run the agent
+
+```bash
+# Local memory + local compute (no creds needed)
+pnpm example:basic
+
+# 0G memory + local compute
+MEMORY_ADAPTER=0g pnpm example:basic
+
+# Fully decentralized (requires funded broker)
+MEMORY_ADAPTER=0g COMPUTE_ADAPTER=0g pnpm example:basic
+```
+
+Kill the process, run it again with the same `SESSION_ID` and adapter — memory is restored.
 
 ---
 
-## Adapters
+## Run with Docker
 
-### 0GMemoryAdapter
+Single-command demo. Memory persists in `./data/` on the host, mounted as the agent's home directory inside the container.
 
-Replaces OpenClaw's local file-based session storage with 0G Storage KV/Log.
+```bash
+cp .env.example .env
+# Fill in .env with real credentials before running
 
-**What gets stored where:**
-
-| Data | Storage type | Key pattern |
-|---|---|---|
-| Active session state | KV Store | `session:{agentId}:{sessionId}` |
-| Conversation history | Log Store | append-only, by session |
-| Agent config (AGENTS.md) | KV Store | `config:{agentId}` |
-
-**Usage:**
-
-```typescript
-import { OGMemoryAdapter } from '0g-claw/adapters/memory';
-
-const memory = new OGMemoryAdapter({
-  rpc: process.env.OG_STORAGE_RPC,
-  indexer: process.env.OG_STORAGE_INDEXER,
-  privateKey: process.env.OG_PRIVATE_KEY,
-});
-
-// Drop-in replacement anywhere OpenClaw reads/writes sessions
+docker compose up --build
 ```
 
-### 0GComputeAdapter
+The container exits when the agent finishes its scripted run; `restart: unless-stopped` brings it back. All session and history files land in `./data/` and survive `docker compose down`.
 
-Routes LLM inference to 0G Compute instead of OpenAI/Anthropic. Compatible with the OpenAI API interface that OpenClaw already uses internally.
+To start fresh:
 
-```typescript
-import { OGComputeAdapter } from '0g-claw/adapters/compute';
-
-const compute = new OGComputeAdapter({
-  endpoint: process.env.OG_COMPUTE_ENDPOINT,
-  model: process.env.OG_COMPUTE_MODEL, // 'qwen/qwen-2.5-7b-instruct'
-});
+```bash
+docker compose down -v
+sudo rm -rf data/   # files are owned by root because the container ran as root
 ```
 
-Active provider on Galileo testnet (validated April 2026):
-- `qwen/qwen-2.5-7b-instruct` via provider `0xa48f01287233509FD694a22Bf840225062E67836`
-- Endpoint: `https://compute-network-6.integratenetwork.work/v1/proxy`
+> **Note:** Docker does **not** run 0G infrastructure. The container talks to the same external Galileo testnet as the host. If `OG_PRIVATE_KEY` is empty in `.env`, the agent falls back to local adapters automatically — no errors, just no decentralization.
 
-To set up the broker (one-time, requires funded wallet):
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the volume mount and `HOME=/app` env var line up with `LocalMemoryAdapter`'s default storage path.
+
+---
+
+## 0G Compute — broker funding requirements
+
+`0GComputeAdapter` uses `@0glabs/0g-serving-broker` to talk to providers. Before a wallet can make inference requests, it must:
+
+1. **Hold ≥ 3 OG tokens** on Galileo testnet (faucet at [faucet.0g.ai](https://faucet.0g.ai))
+2. **Open a broker ledger** — `broker.ledger.addLedger(3)`
+3. **Acknowledge the provider signer** — `broker.inference.acknowledgeProviderSigner(OG_COMPUTE_PROVIDER)`
+4. **Transfer funds to the provider** — `broker.ledger.transferFund(OG_COMPUTE_PROVIDER, "inference", amount)`
+
+All four steps are automated by the helper script:
 
 ```bash
 pnpm setup:broker
 ```
 
-> **Note:** Basic-agent full 0G mode (both `MEMORY_ADAPTER=0g` and `COMPUTE_ADAPTER=0g`) depends on Galileo Storage node availability. If the network is slow, storage uploads may stall. For demos, prefer pre-existing sessions or run with `COMPUTE_ADAPTER=0g` alone.
+Run it once per wallet. State persists on-chain — re-running is idempotent.
+
+### Active providers (Galileo, validated April 2026)
+
+| Provider address | Model |
+|---|---|
+| `0xa48f01287233509FD694a22Bf840225062E67836` | `qwen/qwen-2.5-7b-instruct` |
+| `0x8e60d466FD16798Bec4868aa4CE38586D5590049` | `openai/gpt-oss-20b` |
+| `0x69Eb5a0BD7d0f4bF39eD5CE9Bd3376c61863aE08` | `google/gemma-3-27b-it` |
+
+The default in `.env.example` points at the qwen provider, which has the most stable uptime as of April 2026.
 
 ---
 
-## ENS Integration (Bonus)
+## 0G Compute — deferred execution pattern
 
-Each 0G-Claw agent gets an ENS identity at creation time. This makes agents discoverable by name instead of by wallet address.
+`0GComputeAdapter` uses a **deferred execution** pattern: it lazily resolves the broker, provider metadata, and endpoint on first use, then caches them for the rest of the session. Two reasons:
+
+1. **Cold-start safety.** Constructing the adapter doesn't touch the network. If `OG_COMPUTE_PROVIDER` isn't set, the adapter is constructed but never invoked — fallback runs without paying broker setup cost.
+2. **Failure isolation.** If the broker / provider is unreachable, the failure happens at request time with a clear error, not at agent boot.
+
+This is what lets the agent boot in any environment (CI, Docker, fresh laptop) without 0G credentials, and only call into 0G when an inference is actually requested.
+
+---
+
+## Demo flow
+
+The recommended order for a live demo (3 minutes, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) for the full script):
+
+1. **Primary path — 0G memory persistence.**
+   Run with `MEMORY_ADAPTER=0g` and **local compute**. Have a conversation, kill the process, resume from a different shell or machine with the same `SESSION_ID` + wallet — memory is restored from 0G Storage. This is the headline demo.
+
+2. **Proof of compute.**
+   Show the saved test output: `21/21` integration tests passing against `0xa48f01…`, including the `verificationHash` field. This proves the compute path works without depending on live testnet conditions during the demo.
+
+3. **Optional live compute.**
+   Only if `pnpm check:testnet` reports a healthy network, switch to `COMPUTE_ADAPTER=0g` and run a single inference live.
+
+This order avoids the failure mode where a slow Galileo Storage node blocks a demo whose components are individually validated.
+
+---
+
+## ENS Integration (Bonus track — planned)
+
+Each agent will get an ENS identity at creation:
 
 ```typescript
-// At agent creation:
-// agent.ens = `my-agent.0gclaw.eth`
-// Stored in ENS text records: { "0gclaw.memory": "<0G KV root hash>" }
+// agent.ens = `<label>.0gclaw.eth`
+// ENS text records:
+//   "0gclaw.memory" → 0G KV root hash
+//   "0gclaw.model"  → provider address
 ```
 
-This is optional but qualifies for the ENS track ($2,500).
+This makes agents discoverable by name and qualifies for the ENS AI Agents track ($2,500). See `.env.example` for `ENS_AGENT_LABEL` (currently a placeholder until the integration lands).
 
 ---
 
-## Status (April 2026)
-
-| Component | Status |
-|---|---|
-| `IMemoryAdapter` interface | ✅ defined |
-| `0GMemoryAdapter` — KV write/read for sessions | ✅ live on Galileo testnet |
-| `0GMemoryAdapter` — Log append for history | ✅ live on Galileo testnet |
-| `IComputeAdapter` interface | ✅ defined |
-| `0GComputeAdapter` — inference via 0G Compute proxy | ✅ 21/21 live tests passing |
-| Compute broker — ledger funded, provider acknowledged | ✅ 3 OG ledger, provider `0xa48f01…` |
-| OpenClaw integration — adapters hooked into session layer | ✅ working example agent |
-| Basic example agent running end-to-end | ✅ (`examples/basic-agent/`) |
-| Fallback to local adapters | ✅ `LocalMemoryAdapter` + `OpenAIComputeAdapter` |
-| ENS identity at agent creation | 🔜 planned |
-| Multi-device test (same wallet, two machines) | 🔜 planned |
-| Demo video (under 3 min) | 🔜 planned |
-
-### Demo Strategy
-
-For live demos, use this order to avoid network instability blocking the presentation:
-
-1. **Primary**: Show 0G Memory persistence with a pre-existing session + local compute fallback
-2. **Proof section**: Show `0GComputeAdapter` live test output (21/21 passed), provider/broker setup, `verificationHash` from test results
-3. **Optional live**: Run `COMPUTE_ADAPTER=0g` only if `pnpm run check:testnet` shows the network is healthy
-
-This prevents a slow Galileo Storage node from blocking a demo that is technically already fully validated.
-
----
-
-## Why Not Just Use LangChain?
+## Why not LangChain?
 
 LangChain and CrewAI assume a coordinator — a central process that orchestrates everything. OpenClaw is personal and local-first. 0G-Claw keeps that philosophy but makes the persistence layer decentralized. You're not building a pipeline, you're building a persistent agent that happens to use decentralized infra under the hood.
 
 ---
 
-## 0G Protocol Usage
+## 0G Protocol usage summary
 
-| Component | What we use | Why |
+| Component | Used for | Why |
 |---|---|---|
-| 0G Storage — KV Store | Session state, agent config | Fast read/write, key-value access pattern |
-| 0G Storage — Log Store | Conversation history | Append-only, immutable history |
-| 0G Compute | LLM inference | Open models, verifiable, no API key to OpenAI |
-| 0G Chain | (ENS integration anchor) | On-chain agent identity |
+| 0G Storage — KV Store | Session state, agent config | Fast random-access read/write |
+| 0G Storage — Log Store | Conversation history | Append-only, replayable from any point |
+| 0G Compute | LLM inference | Open models, signed responses, no vendor key |
+| 0G Chain | (ENS anchor — planned) | On-chain agent identity |
 
-SDK: `@0glabs/0g-ts-sdk`
+SDKs: `@0gfoundation/0g-ts-sdk` (storage), `@0glabs/0g-serving-broker` (compute), `@ensdomains/ensjs` (identity).
 
 ---
 
-## Team
+## Documentation
 
-| Name | Role | Contact |
-|---|---|---|
-| [Socio A] | Core / OpenClaw integration | @handle |
-| [Socio B] | Infra / 0G adapters | @handle |
-
----
-
-## Submission Checklist
-
-- [ ] Project name and description ✅ (this README)
-- [ ] Contract deployment addresses (ENS + 0G Chain)
-- [ ] Public GitHub repo with README + setup instructions ✅
-- [ ] Demo video (under 3 min)
-- [ ] Live demo link
-- [ ] Which protocol features/SDKs used ✅ (see table above)
-- [ ] Team contact info
-- [ ] At least one working example agent ✅ (`examples/basic-agent/`)
-- [ ] Architecture diagram ✅ (see above)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — adapter contracts, data flow, capability model
+- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) — 3-minute live demo walkthrough
+- [docs/SUBMISSION.md](docs/SUBMISSION.md) — ETHGlobal submission checklist and tracks
+- [examples/basic-agent/README.md](examples/basic-agent/README.md) — agent CLI usage and env var matrix
+- [CLAUDE.md](CLAUDE.md) — agent-engineering rules for contributors using Claude
 
 ---
 
