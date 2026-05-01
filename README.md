@@ -151,15 +151,12 @@ Edit `.env`:
 ```env
 # 0G Storage
 OG_STORAGE_RPC=https://evmrpc-testnet.0g.ai
-OG_STORAGE_INDEXER=https://indexer-storage-testnet-standard.0g.ai
+OG_STORAGE_INDEXER=https://indexer-storage-testnet-turbo.0g.ai
 OG_PRIVATE_KEY=your_wallet_private_key
 
-# 0G Compute
-OG_COMPUTE_ENDPOINT=https://api.0g.ai/v1
-OG_COMPUTE_MODEL=qwen3-plus         # or GLM-5-FP8
-
-# OpenClaw (keep your existing config)
-OPENCLAW_WORKSPACE=~/.openclaw
+# 0G Compute — provider on Galileo testnet
+# Full list in .env.example
+OG_COMPUTE_PROVIDER=0xa48f01287233509FD694a22Bf840225062E67836
 ```
 
 ### 4. Verify connectivity

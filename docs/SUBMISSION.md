@@ -53,7 +53,7 @@ SDKs:
 
 - `@0gfoundation/0g-ts-sdk@^1.2.6` — storage
 - `@0glabs/0g-serving-broker@^0.7.5` — compute
-- `@ensdomains/ensjs@^4.0.2` — identity (ENS track)
+- `@ensdomains/ensjs@^4.0.2` — identity (installed, ENS integration planned — see Status table)
 
 ---
 
