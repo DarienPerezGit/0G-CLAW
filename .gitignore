@@ -27,3 +27,7 @@ Thumbs.db
 # IDE
 .vscode/settings.json
 .idea/
+
+# Local agent state (Docker volume + dev runs)
+data/
+.0g-claw/
