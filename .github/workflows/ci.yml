@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Skip cancelable concurrent runs on the same ref to save CI minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build + tests (no testnet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check (tsc)
+        run: pnpm build
+
+      - name: Run tests
+        # Live testnet tests skip themselves when OG_PRIVATE_KEY is missing.
+        # 0G compute integration tests gate on ENABLE_0G_COMPUTE_TESTS, which
+        # we deliberately do not set here — CI runs the unit + local-adapter
+        # surface only. Live integration is validated locally before demos.
+        run: pnpm test

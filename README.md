@@ -100,9 +100,14 @@ For deeper architecture details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md
 │       ├── OpenAIComputeAdapter.ts # Fallback
 │       └── IComputeAdapter.ts      # Contract
 ├── examples/
-│   └── basic-agent/                # End-to-end demo agent
+│   ├── basic-agent/                # Conversational chat agent (chat loop)
+│   │   ├── agent.ts
+│   │   └── README.md
+│   └── research-agent/             # Topic-driven research pipeline (plan → research → synthesize)
 │       ├── agent.ts
-│       └── README.md
+│       ├── README.md
+│       ├── lib/                    # topicId, prompts, types
+│       └── tools/                  # WikipediaSearchTool, MemoryRecallTool, ITool
 ├── scripts/
 │   ├── check-testnet.ts            # Pre-flight: verifies 0G connectivity
 │   └── setup-compute-broker.ts     # One-time broker funding helper
@@ -139,12 +144,23 @@ pnpm install
 
 ```bash
 cp .env.example .env
-# Edit .env and fill in OG_PRIVATE_KEY and OG_COMPUTE_PROVIDER (see .env.example for active providers)
 ```
 
-Minimum required for **0G memory**: `OG_STORAGE_RPC`, `OG_STORAGE_INDEXER`, `OG_PRIVATE_KEY`.
-Additional for **0G compute**: `OG_COMPUTE_PROVIDER` + a funded broker (see below).
-With **no env vars set**, the agent runs against `LocalMemoryAdapter` + `OpenAIComputeAdapter` (or just local compute if no `OPENAI_API_KEY`).
+Edit `.env`:
+
+```env
+# 0G Storage
+OG_STORAGE_RPC=https://evmrpc-testnet.0g.ai
+OG_STORAGE_INDEXER=https://indexer-storage-testnet-standard.0g.ai
+OG_PRIVATE_KEY=your_wallet_private_key
+
+# 0G Compute
+OG_COMPUTE_ENDPOINT=https://api.0g.ai/v1
+OG_COMPUTE_MODEL=qwen3-plus         # or GLM-5-FP8
+
+# OpenClaw (keep your existing config)
+OPENCLAW_WORKSPACE=~/.openclaw
+```
 
 ### 4. Verify connectivity
 
@@ -154,7 +170,9 @@ pnpm check:testnet
 
 This confirms RPC, indexer, balance, and provider reachability before you spend a session.
 
-### 5. Run the agent
+### 5. Run an example agent
+
+The repo ships **two reference agents** built on the same adapter layer — proof that 0G-Claw is a framework, not a single-use codebase.
 
 ```bash
 # Local memory + local compute (no creds needed)
@@ -165,9 +183,12 @@ MEMORY_ADAPTER=0g pnpm example:basic
 
 # Fully decentralized (requires funded broker)
 MEMORY_ADAPTER=0g COMPUTE_ADAPTER=0g pnpm example:basic
+
+# Topic-driven research pipeline
+RESEARCH_TOPIC="0G decentralized AI" pnpm example:research
 ```
 
-Kill the process, run it again with the same `SESSION_ID` and adapter — memory is restored.
+Both agents share the same `IMemoryAdapter` and `IComputeAdapter`. Kill either process, run it again with the same wallet — memory is still there.
 
 ---
 
@@ -251,6 +272,29 @@ The recommended order for a live demo (3 minutes, see [docs/DEMO_SCRIPT.md](docs
    Only if `pnpm check:testnet` reports a healthy network, switch to `COMPUTE_ADAPTER=0g` and run a single inference live.
 
 This order avoids the failure mode where a slow Galileo Storage node blocks a demo whose components are individually validated.
+
+---
+
+## Research Agent
+
+`examples/research-agent/` demonstrates how 0G-Claw can power a tool-using agent while preserving the same adapter architecture.
+
+Given a `RESEARCH_TOPIC`, the agent:
+1. Generates a research plan via `IComputeAdapter`
+2. Executes each step using `WikipediaSearchTool` (public HTTP, no API key)
+3. Synthesizes findings back through `IComputeAdapter`
+4. Persists all session data via `IMemoryAdapter`
+
+It uses the same `MEMORY_ADAPTER` / `COMPUTE_ADAPTER` env vars as `basic-agent` and falls back to local adapters when 0G credentials are absent. It is a reference implementation, not production-ready.
+
+```bash
+RESEARCH_TOPIC="0G decentralized AI" pnpm example:research
+
+# Inspect a past session
+SESSION_ID=<id> pnpm example:research:inspect
+```
+
+See [`examples/research-agent/README.md`](examples/research-agent/README.md) for full usage.
 
 ---
 
