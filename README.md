@@ -1,14 +1,31 @@
-# 0G-Claw 🦞⚡
+<div align="center">
 
-> **OpenClaw, but your agent never forgets — and never depends on Big Tech.**
+<img src="docs/assets/logo1.jpg" alt="0G-Claw" width="600" />
 
-0G-Claw is a fork of [OpenClaw](https://github.com/openclaw/openclaw) that replaces its centralized dependencies with [0G's](https://0g.ai) decentralized infrastructure stack:
+# 0G-Claw
 
-- **Memory** moves from local disk to **0G Storage (KV/Log)** — sessions and conversation history are portable across any device
-- **Inference** moves from OpenAI / Anthropic to **0G Compute** — open models (Qwen2.5, GLM, Gemma) with verifiable, signed responses
-- **Identity** (planned) is anchored on **ENS** — agents are addressable by name, not wallet hash
+**OpenClaw, but your agent never forgets — and never depends on Big Tech.**
 
-Built for [ETHGlobal Open Agents](https://ethglobal.com/events/openagents).
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![0G Galileo](https://img.shields.io/badge/0G-Galileo%20Testnet-6C47FF)](https://0g.ai)
+[![ETHGlobal Open Agents](https://img.shields.io/badge/ETHGlobal-Open%20Agents%202026-black)](https://ethglobal.com/events/openagents)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+</div>
+
+---
+
+0G-Claw is a fork of [OpenClaw](https://github.com/openclaw/openclaw) that replaces its centralized dependencies with [0G's](https://0g.ai) decentralized infrastructure stack. The agent adapters are the only extension point — OpenClaw core is untouched.
+
+| Layer | OpenClaw | 0G-Claw |
+|---|---|---|
+| **Memory** | Local disk (`~/.openclaw/`) | **0G Storage KV/Log** — portable across any device |
+| **Inference** | OpenAI / Anthropic | **0G Compute** — open models, verifiable signed responses |
+| **Identity** | None | **ENS** *(planned)* — agents addressable by name |
+
+> Same agent, any machine, no vendor lock-in.
+
+**Built for [ETHGlobal Open Agents](https://ethglobal.com/events/openagents) · [Architecture](docs/ARCHITECTURE.md) · [Demo Script](docs/DEMO_SCRIPT.md) · [Submission Notes](docs/SUBMISSION.md)**
 
 ---
 
