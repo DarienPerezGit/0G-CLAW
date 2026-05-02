@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo-banner.svg" alt="0G-Claw" width="320" />
+</p>
+
 # 0G-Claw 🦞⚡
 
 > **OpenClaw, but your agent never forgets — and never depends on Big Tech.**

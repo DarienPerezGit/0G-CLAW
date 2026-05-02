@@ -6,6 +6,8 @@
 <title>0G-Claw — Team Plan (internal)</title>
 <meta name="description" content="Internal team-tracking page for 0G-Claw. The public ETHGlobal submission landing lives in /pitch." />
 <meta name="robots" content="noindex" />
+
+<link rel="icon" type="image/svg+xml" href="../assets/logo.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
@@ -187,16 +189,11 @@
   }
 
   .brand-mark {
-    display: inline-grid;
-    place-items: center;
+    display: block;
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: linear-gradient(135deg, var(--cyan), #0099cc);
-    color: var(--bg);
-    font-weight: 800;
-    font-size: 13px;
-    letter-spacing: -0.02em;
+    flex-shrink: 0;
   }
 
   .nav-links {
@@ -1266,7 +1263,7 @@
 <nav class="top-nav">
   <div class="container">
     <a href="#" class="brand">
-      <span class="brand-mark">0G</span>
+      <img class="brand-mark" src="../assets/logo.svg" alt="0G-Claw logo" width="28" height="28" />
       <span>0G-Claw</span>
     </a>
     <div class="nav-links">
@@ -2171,7 +2168,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="brand">
-          <span class="brand-mark">0G</span>
+          <img class="brand-mark" src="../assets/logo.svg" alt="0G-Claw logo" width="28" height="28" />
           <span>0G-Claw</span>
         </div>
         <p>OpenClaw with decentralized memory and verifiable inference. Built for ETHGlobal Open Agents — Best Agent Framework + ENS AI Agents.</p>
