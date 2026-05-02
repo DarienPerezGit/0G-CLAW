@@ -126,6 +126,48 @@ For a guided live demo, follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md). For deeper arch
 
 ---
 
+## Demo Evidence — 0G Compute (May 2026)
+
+**Network:** 0G Galileo Testnet · Chain ID `16602`  
+**Provider:** `0xa48f01287233509FD694a22Bf840225062E67836`  
+**Model:** `qwen/qwen-2.5-7b-instruct`  
+**Endpoint:** `https://compute-network-6.integratenetwork.work/v1/proxy`
+
+### Broker state at verification
+
+| Item | Status |
+|---|---|
+| Ledger | Exists |
+| Provider acknowledged | ✅ |
+| Provider funded | ✅ 3.000000 OG |
+| Transactions sent during verification | 0 — no spend required |
+
+### Live integration test run
+
+```bash
+ENABLE_0G_COMPUTE_TESTS=true pnpm test adapters/compute/0GComputeAdapter.test.ts --reporter=verbose
+```
+
+```
+Test Files  1 passed (1)
+Tests       21 passed (21)
+Duration    107.51s
+```
+
+**Validated cases:**
+
+- `healthCheck()` returns `true` against live broker
+- `getModel()` returns non-empty string after init
+- `chat()` returns valid `InferenceResult` (content, model, usage)
+- System messages are forwarded correctly
+- `options.model` override is respected
+- `verificationHash` is `string | undefined` — never `null`, never fabricated
+- `getServiceMetadata()` resolves endpoint and model from provider address
+- Broker instance is reused across consecutive calls (no re-init)
+- Provider address matches known Galileo testnet provider
+
+---
+
 ## Why this is more than a demo
 
 OpenClaw is one of many local-first agent frameworks. What 0G-Claw adds is a clean **infrastructure primitive**: a TypeScript contract that says "here's what a memory backend must do, here's what a compute backend must do," with two implementations of each that prove the contract works.
