@@ -21,4 +21,4 @@ The page contains:
 - **Submission checklist** with progress bar
 - **Shipping log** of the work already done across both feature branches
 
-Single HTML file. No build step, no dependencies, no server. Inter + JetBrains Mono via Google Fonts CDN.
+Single HTML file. No build step, no install, no local server. The page loads Inter + JetBrains Mono from the Google Fonts CDN at view time, so a network connection is required for the typography to render correctly (system sans-serif kicks in as fallback if offline).

@@ -1348,8 +1348,8 @@
         <div class="stat-label">Funded compute broker on Galileo</div>
       </div>
       <div class="stat">
-        <div class="stat-value">3</div>
-        <div class="stat-label">Branches ready (main, chore/demo-readiness, feat/research-agent)</div>
+        <div class="stat-value">4</div>
+        <div class="stat-label">Branches ready (<code>main</code>, <code>chore/demo-readiness</code>, <code>feat/research-agent</code>, <code>docs/winning-plan-site</code>)</div>
       </div>
     </div>
   </div>
@@ -1601,8 +1601,9 @@
 
     <div class="plan-progress-wrap">
       <span class="plan-progress-label">Plan progress</span>
-      <div class="progress-bar"><div class="progress-bar-fill" id="planProgressFill"></div></div>
-      <span class="progress-text" id="planProgressText">0 / 0</span>
+      <div class="progress-bar"><div class="progress-bar-fill" id="planProgressFill" style="width: 27%"></div></div>
+      <!-- Initial value reflects items pre-marked done in HTML; JS recalculates on click. -->
+      <span class="progress-text" id="planProgressText">4 / 15</span>
     </div>
 
     <div class="tiers" id="tiers">
@@ -1625,11 +1626,12 @@
             <span class="check" role="checkbox" tabindex="0" aria-label="ENS integration"></span>
             <div class="tier-item-body">
               <div class="tier-item-title">ENS identity at agent creation</div>
-              <div class="tier-item-detail">Register <code>&lt;label&gt;.0gclaw.eth</code> at boot, write text records: <code>0gclaw.memory</code> → KV root hash, <code>0gclaw.model</code> → provider address, <code>0gclaw.topic</code> for research-agent. Add a <code>resolve-agent</code> command that resolves an ENS name back to its memory.</div>
+              <div class="tier-item-detail">At boot, write text records on a wallet-controlled ENS name (Sepolia testnet to avoid mainnet gas): <code>0gclaw.memory</code> → KV root hash, <code>0gclaw.model</code> → provider address, <code>0gclaw.topic</code> for research-agent. Add a <code>resolve-agent</code> command that resolves an ENS name back to its memory.</div>
               <div class="tier-item-tags">
                 <span class="tag priority-critical">CRITICAL</span>
                 <span class="tag ens">ENS · $2,500</span>
                 <span class="tag">@ensdomains/ensjs already installed</span>
+                <span class="tag">prereq: own a parent .eth (testnet OK)</span>
               </div>
             </div>
             <div class="tier-item-effort"><strong>4–6h</strong>direct prize</div>
@@ -1677,7 +1679,7 @@
           </div>
         </header>
         <ul class="tier-items">
-          <li class="tier-item" data-id="t2-ci">
+          <li class="tier-item done" data-id="t2-ci">
             <span class="check" role="checkbox" tabindex="0" aria-label="GitHub Actions CI"></span>
             <div class="tier-item-body">
               <div class="tier-item-title">GitHub Actions CI workflow</div>
@@ -1690,7 +1692,7 @@
             <div class="tier-item-effort"><strong>30 min</strong>shipped</div>
           </li>
 
-          <li class="tier-item" data-id="t2-license">
+          <li class="tier-item done" data-id="t2-license">
             <span class="check" role="checkbox" tabindex="0" aria-label="LICENSE file"></span>
             <div class="tier-item-body">
               <div class="tier-item-title">LICENSE file (MIT)</div>
@@ -1703,7 +1705,7 @@
             <div class="tier-item-effort"><strong>2 min</strong>shipped</div>
           </li>
 
-          <li class="tier-item" data-id="t2-inspect">
+          <li class="tier-item done" data-id="t2-inspect">
             <span class="check" role="checkbox" tabindex="0" aria-label="Inspect command"></span>
             <div class="tier-item-body">
               <div class="tier-item-title"><code>example:research:inspect</code> — read-only viewer</div>
@@ -1813,7 +1815,7 @@
           </div>
         </header>
         <ul class="tier-items">
-          <li class="tier-item" data-id="t4-license">
+          <li class="tier-item done" data-id="t4-license">
             <span class="check" role="checkbox" tabindex="0" aria-label="LICENSE done"></span>
             <div class="tier-item-body">
               <div class="tier-item-title">LICENSE (MIT) — see Tier 02</div>
@@ -1885,11 +1887,12 @@
           <span class="schedule-day-title">ENS integration</span>
         </div>
         <ul class="schedule-day-tasks">
+          <li><strong>Prereq</strong>: confirm whether the team owns a parent <code>.eth</code> domain. If not, either register one (~$5/year on mainnet, free on Sepolia testnet) or pivot to writing records on an existing wallet-controlled name. Decide before writing code <span class="who">(Juan + Darien)</span></li>
           <li>Add <code>adapters/identity/ENSIdentityAdapter.ts</code> with <code>@ensdomains/ensjs</code> <span class="who">(Juan + Darien — touches adapters)</span></li>
-          <li>At basic-agent + research-agent boot, register <code>&lt;label&gt;.0gclaw.eth</code> if <code>ENS_AGENT_LABEL</code> set <span class="who">(Juan)</span></li>
-          <li>Write text records: <code>0gclaw.memory</code>, <code>0gclaw.model</code>, <code>0gclaw.topic</code> <span class="who">(Juan)</span></li>
+          <li>At basic-agent + research-agent boot, register / update text records on <code>&lt;label&gt;.&lt;parent&gt;.eth</code> if <code>ENS_AGENT_LABEL</code> set <span class="who">(Juan)</span></li>
+          <li>Text record keys: <code>0gclaw.memory</code> (KV root hash), <code>0gclaw.model</code> (provider address), <code>0gclaw.topic</code> (research-agent only) <span class="who">(Juan)</span></li>
           <li>New <code>scripts/resolve-agent.ts</code> — takes ENS name, prints memory roots <span class="who">(Juan)</span></li>
-          <li>Tests for the resolver against testnet ENS <span class="who">(Juan)</span></li>
+          <li>Tests against ENS Sepolia testnet (no mainnet gas) <span class="who">(Juan)</span></li>
         </ul>
       </div>
 
@@ -2012,8 +2015,9 @@
     <div class="submission-card">
       <div class="submission-progress">
         <span class="submission-progress-label">Submission readiness</span>
-        <div class="progress-bar"><div class="progress-bar-fill" id="submissionProgressFill"></div></div>
-        <span class="progress-text" id="submissionProgressText">0 / 0</span>
+        <div class="progress-bar"><div class="progress-bar-fill" id="submissionProgressFill" style="width: 69%"></div></div>
+        <!-- Initial value reflects items pre-marked done; JS recalculates on click. -->
+        <span class="progress-text" id="submissionProgressText">9 / 13</span>
       </div>
 
       <ul class="checklist" id="submissionList">
