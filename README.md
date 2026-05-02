@@ -6,6 +6,8 @@
 
 Built for [ETHGlobal Open Agents](https://ethglobal.com/events/openagents) — Track: 🛠️ Best Agent Framework, Tooling & Core Extensions.
 
+> **Live submission landing**: open [`pitch/index.html`](pitch/index.html) in any browser, or deploy `/pitch` to GitHub Pages / Vercel / Netlify. The page is the public face of the project — hero, architecture, capabilities, demo video, copy-paste quickstart. Internal team planning lives in [`team-plan/`](team-plan/).
+
 ---
 
 ## The Problem

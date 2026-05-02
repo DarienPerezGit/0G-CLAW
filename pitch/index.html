@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>0G-Claw — Winner-Mode Roadmap</title>
-<meta name="description" content="OpenClaw, but your agent never forgets — and never depends on Big Tech. Built for ETHGlobal Open Agents." />
+<title>0G-Claw — Sovereign AI agents on 0G Storage + 0G Compute</title>
+<meta name="description" content="OpenClaw with decentralized memory and verifiable inference. MIT-licensed framework with two reference agents — built for ETHGlobal Open Agents." />
+<meta property="og:title" content="0G-Claw" />
+<meta property="og:description" content="OpenClaw with decentralized memory and verifiable inference." />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
@@ -13,49 +16,41 @@
   /* -------------------------------------------------------------------- */
   /* RESET + BASE                                                          */
   /* -------------------------------------------------------------------- */
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:                 #060608;
-    --bg-elevated:        #0d0d10;
-    --bg-card:            #131318;
-    --bg-card-hover:      #181820;
-    --border:             #1d1d24;
-    --border-strong:      #2a2a36;
-    --text:               #f4f5f7;
-    --text-secondary:     #9ca0aa;
-    --text-tertiary:      #5c6068;
+    --bg:               #060608;
+    --bg-elevated:      #0d0d10;
+    --bg-card:          #131318;
+    --bg-card-hover:    #181820;
+    --bg-deep:          #03030410;
+    --border:           #1d1d24;
+    --border-strong:    #2a2a36;
+    --text:             #f4f5f7;
+    --text-secondary:   #9ca0aa;
+    --text-tertiary:    #5c6068;
 
-    --cyan:               #00d9ff;
-    --cyan-hover:         #5feaff;
-    --cyan-soft:          rgba(0, 217, 255, 0.10);
-    --cyan-line:          rgba(0, 217, 255, 0.30);
+    --cyan:             #00d9ff;
+    --cyan-hover:       #5feaff;
+    --cyan-soft:        rgba(0, 217, 255, 0.10);
+    --cyan-line:        rgba(0, 217, 255, 0.30);
 
-    --ens:                #b794f6;
-    --ens-soft:           rgba(183, 148, 246, 0.10);
+    --ens:              #b794f6;
+    --ens-soft:         rgba(183, 148, 246, 0.10);
 
-    --success:            #34d399;
-    --success-soft:       rgba(52, 211, 153, 0.12);
-    --warning:            #fbbf24;
-    --warning-soft:       rgba(251, 191, 36, 0.12);
-    --danger:             #f87171;
-    --danger-soft:        rgba(248, 113, 113, 0.12);
+    --green:            #34d399;
+    --green-soft:       rgba(52, 211, 153, 0.10);
 
-    --shadow-sm:          0 2px 6px rgba(0, 0, 0, 0.5);
-    --shadow-lg:          0 20px 60px rgba(0, 0, 0, 0.7);
+    --orange:           #fb923c;
 
-    --radius:             12px;
-    --radius-lg:          18px;
+    --shadow-sm:        0 2px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg:        0 20px 60px rgba(0, 0, 0, 0.7);
 
-    --container:          1200px;
-    --section-pad-y:      120px;
-    --section-pad-y-sm:   80px;
+    --radius:           12px;
+    --radius-lg:        18px;
+
+    --container:        1200px;
+    --section-pad-y:    120px;
   }
 
   html {
@@ -70,30 +65,20 @@
     color: var(--text);
     background: var(--bg);
     background-image:
-      radial-gradient(ellipse at top, rgba(0, 217, 255, 0.08), transparent 60%),
-      radial-gradient(ellipse at bottom right, rgba(183, 148, 246, 0.06), transparent 50%);
+      radial-gradient(ellipse 1200px 800px at top, rgba(0, 217, 255, 0.08), transparent 60%),
+      radial-gradient(ellipse 800px 600px at bottom right, rgba(183, 148, 246, 0.06), transparent 50%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
-  ::selection {
-    background: var(--cyan);
-    color: var(--bg);
-  }
+  ::selection { background: var(--cyan); color: var(--bg); }
 
-  a {
-    color: var(--cyan);
-    text-decoration: none;
-    transition: color 0.15s ease;
-  }
+  a { color: var(--cyan); text-decoration: none; transition: color 0.15s ease; }
   a:hover { color: var(--cyan-hover); }
 
-  code, pre {
-    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
-    font-size: 0.9em;
-  }
+  code, pre { font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace; font-size: 0.9em; }
 
   code {
     background: var(--bg-card);
@@ -104,7 +89,7 @@
   }
 
   /* -------------------------------------------------------------------- */
-  /* LAYOUT PRIMITIVES                                                     */
+  /* LAYOUT                                                                */
   /* -------------------------------------------------------------------- */
   .container {
     max-width: var(--container);
@@ -112,13 +97,9 @@
     padding: 0 32px;
   }
 
-  section {
-    padding: var(--section-pad-y) 0;
-  }
+  section { padding: var(--section-pad-y) 0; }
 
-  .section-head {
-    margin-bottom: 56px;
-  }
+  .section-head { margin-bottom: 56px; }
 
   .section-head .eyebrow {
     font-family: 'JetBrains Mono', monospace;
@@ -165,7 +146,7 @@
     top: 0;
     z-index: 50;
     backdrop-filter: blur(16px);
-    background: rgba(6, 6, 8, 0.7);
+    background: rgba(6, 6, 8, 0.75);
     border-bottom: 1px solid var(--border);
   }
 
@@ -195,7 +176,6 @@
     color: var(--bg);
     font-weight: 800;
     font-size: 13px;
-    letter-spacing: -0.02em;
   }
 
   .nav-links {
@@ -208,11 +188,8 @@
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-    transition: color 0.15s ease;
   }
-  .nav-links a:hover {
-    color: var(--text);
-  }
+  .nav-links a:hover { color: var(--text); }
 
   .nav-cta {
     display: inline-flex;
@@ -226,10 +203,7 @@
     font-weight: 600;
     transition: background 0.15s ease, transform 0.15s ease;
   }
-  .nav-cta:hover {
-    background: var(--cyan-hover);
-    transform: translateY(-1px);
-  }
+  .nav-cta:hover { background: var(--cyan-hover); transform: translateY(-1px); }
 
   /* -------------------------------------------------------------------- */
   /* HERO                                                                  */
@@ -237,12 +211,11 @@
   .hero {
     padding: 100px 0 80px;
     position: relative;
-    overflow: hidden;
   }
 
   .hero-grid {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 1.05fr 1fr;
     gap: 64px;
     align-items: center;
   }
@@ -273,6 +246,12 @@
     background: var(--cyan-soft);
   }
 
+  .badge.green {
+    color: var(--green);
+    border-color: rgba(52, 211, 153, 0.3);
+    background: var(--green-soft);
+  }
+
   .badge .dot {
     width: 6px;
     height: 6px;
@@ -281,10 +260,19 @@
     box-shadow: 0 0 8px currentColor;
   }
 
+  .badge .dot.live {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
   .hero h1 {
-    font-size: 84px;
+    font-size: 72px;
     font-weight: 800;
-    line-height: 0.95;
+    line-height: 0.98;
     letter-spacing: -0.04em;
     margin-bottom: 24px;
   }
@@ -297,17 +285,18 @@
   }
 
   .hero .tagline {
-    font-size: 22px;
-    line-height: 1.5;
+    font-size: 20px;
+    line-height: 1.55;
     color: var(--text-secondary);
     max-width: 540px;
-    margin-bottom: 40px;
+    margin-bottom: 36px;
   }
 
   .hero-ctas {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   .btn {
@@ -344,231 +333,153 @@
     border-color: var(--text-tertiary);
   }
 
-  /* Prize panel */
-  .prize-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 14px 12px;
+  }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* Terminal mockup ----------------------------------------------------- */
+  .terminal {
+    background: linear-gradient(180deg, var(--bg-card), var(--bg-elevated));
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-lg);
-    padding: 32px;
-    position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.75;
   }
 
-  .prize-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 30% 0%, rgba(0, 217, 255, 0.18), transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(183, 148, 246, 0.15), transparent 50%);
-    pointer-events: none;
-  }
-
-  .prize-panel-head {
+  .term-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    position: relative;
-    z-index: 1;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.025);
+    border-bottom: 1px solid var(--border);
   }
 
-  .prize-panel-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  .term-bar .term-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+  .term-bar .term-dot.red    { background: #ff5f57; }
+  .term-bar .term-dot.yellow { background: #febc2e; }
+  .term-bar .term-dot.green  { background: #28c840; }
+
+  .term-bar .term-title {
+    flex: 1;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+  }
+
+  .term-body {
+    padding: 18px 22px 22px;
     color: var(--text-secondary);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    white-space: pre;
+    overflow-x: auto;
   }
 
-  .prize-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    position: relative;
-    z-index: 1;
+  .term-body .prompt { color: var(--green); margin-right: 8px; }
+  .term-body .cmd    { color: var(--text); }
+  .term-body .out    { color: var(--text-secondary); }
+  .term-body .out-dim { color: var(--text-tertiary); }
+  .term-body .accent { color: var(--cyan); }
+  .term-body .hash   { color: var(--cyan); }
+  .term-body .ok     { color: var(--green); }
+  .term-body .arrow  { color: var(--text-tertiary); }
+  .term-body .blink {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--cyan);
+    vertical-align: text-bottom;
+    animation: blink 1.1s steps(1, end) infinite;
   }
-
-  .prize {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    padding: 18px 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    transition: border-color 0.15s ease;
-  }
-  .prize:hover {
-    border-color: var(--border-strong);
-  }
-
-  .prize.framework {
-    border-color: var(--cyan-line);
-    background: var(--cyan-soft);
-  }
-
-  .prize.ens {
-    border-color: rgba(183, 148, 246, 0.30);
-    background: var(--ens-soft);
-  }
-
-  .prize-meta { line-height: 1.3; }
-  .prize-meta .track-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .prize-meta .track-status {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace;
-    margin-top: 2px;
-  }
-  .prize-amount {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-  }
-  .prize.framework .prize-amount { color: var(--cyan); }
-  .prize.ens       .prize-amount { color: var(--ens); }
-
-  .prize-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--border-strong);
-    position: relative;
-    z-index: 1;
-  }
-  .prize-total-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .prize-total-amount {
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-  }
+  @keyframes blink { 50% { opacity: 0; } }
 
   /* -------------------------------------------------------------------- */
-  /* STATS BAR                                                             */
+  /* PROBLEM / SOLUTION                                                    */
   /* -------------------------------------------------------------------- */
-  .stats-bar {
-    background: var(--bg-elevated);
+  .problem {
     border-block: 1px solid var(--border);
-    padding: 40px 0;
+    background: var(--bg-elevated);
   }
 
-  .stats-grid {
+  .problem-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 32px;
   }
 
-  .stat .stat-value {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--cyan);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    margin-bottom: 8px;
-  }
-  .stat .stat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  /* -------------------------------------------------------------------- */
-  /* SECTION: STATUS                                                       */
-  /* -------------------------------------------------------------------- */
-  .status-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+  .problem-card {
+    padding: 32px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    overflow: hidden;
-    font-size: 14px;
+    position: relative;
   }
 
-  .status-table th,
-  .status-table td {
-    padding: 16px 20px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
+  .problem-card.before { border-color: rgba(248, 113, 113, 0.25); }
+  .problem-card.after  { border-color: var(--cyan-line); }
 
-  .status-table thead th {
-    background: var(--bg-elevated);
-    font-weight: 600;
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .status-table tbody tr:last-child td { border-bottom: none; }
-  .status-table tbody tr:hover { background: var(--bg-card-hover); }
-
-  .status-table .component {
-    font-weight: 500;
-    color: var(--text);
-  }
-  .status-table .note {
-    color: var(--text-secondary);
-    font-size: 13px;
-  }
-
-  .pill {
+  .problem-tag {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
     border-radius: 100px;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
     font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
   }
-  .pill .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
+  .problem-card.before .problem-tag { color: #f87171; background: rgba(248, 113, 113, 0.08); }
+  .problem-card.after  .problem-tag { color: var(--cyan); background: var(--cyan-soft); }
+
+  .problem-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
   }
-  .pill.success {
-    background: var(--success-soft);
-    color: var(--success);
+
+  .problem-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  .pill.warning {
-    background: var(--warning-soft);
-    color: var(--warning);
-  }
-  .pill.danger {
-    background: var(--danger-soft);
-    color: var(--danger);
-  }
-  .pill.muted {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+  .problem-card li {
     color: var(--text-secondary);
+    font-size: 14px;
+    padding-left: 22px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .problem-card.before li::before {
+    content: '✕';
+    position: absolute;
+    left: 0;
+    color: #f87171;
+    font-weight: 700;
+  }
+  .problem-card.after li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    font-weight: 700;
   }
 
   /* -------------------------------------------------------------------- */
-  /* ARCHITECTURE                                                          */
+  /* HOW IT WORKS / ARCHITECTURE                                           */
   /* -------------------------------------------------------------------- */
   .arch-canvas {
     background: var(--bg-card);
@@ -578,589 +489,425 @@
     overflow: hidden;
     text-align: center;
   }
+  .arch-canvas svg { max-width: 100%; height: auto; }
 
-  .arch-canvas svg {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .arch-callouts {
+  /* -------------------------------------------------------------------- */
+  /* CAPABILITIES                                                          */
+  /* -------------------------------------------------------------------- */
+  .caps {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 32px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
 
-  .callout {
+  .cap {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    transition: border-color 0.15s ease, transform 0.15s ease;
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
-
-  .callout:hover {
+  .cap:hover {
     border-color: var(--cyan-line);
     transform: translateY(-2px);
   }
 
-  .callout-num {
+  .cap-num {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     color: var(--cyan);
     font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  .cap-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .cap-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .cap-snippet {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin-top: auto;
+  }
+
+  .cap-snippet .k { color: var(--ens); }
+  .cap-snippet .s { color: var(--green); }
+  .cap-snippet .c { color: var(--text-tertiary); font-style: italic; }
+  .cap-snippet .t { color: var(--cyan); }
+
+  /* -------------------------------------------------------------------- */
+  /* AGENTS COMPARISON                                                     */
+  /* -------------------------------------------------------------------- */
+  .agents {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .agent {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .agent::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 0%, rgba(0, 217, 255, 0.05), transparent 50%);
+    pointer-events: none;
+  }
+
+  .agent-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .agent-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .agent-pattern {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .agent-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.55;
+    position: relative;
+  }
+
+  .agent-cmd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .agent-cmd .prompt { color: var(--green); margin-right: 8px; }
+
+  .agent-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+  .agent-features li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding-left: 22px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .agent-features li::before {
+    content: '·';
+    position: absolute;
+    left: 6px;
+    color: var(--cyan);
+    font-size: 22px;
+    line-height: 1;
+    top: 4px;
+  }
+
+  .agents-takeaway {
+    margin-top: 32px;
+    padding: 24px 28px;
+    background: var(--cyan-soft);
+    border: 1px solid var(--cyan-line);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .agents-takeaway strong { color: var(--cyan); }
+
+  /* -------------------------------------------------------------------- */
+  /* DEMO VIDEO                                                            */
+  /* -------------------------------------------------------------------- */
+  .video-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+
+  .video-frame {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, var(--bg-elevated), var(--bg));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .video-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(0, 217, 255, 0.08), transparent 65%);
+  }
+
+  .video-play {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--cyan);
+    display: grid;
+    place-items: center;
+    color: var(--bg);
+    box-shadow: 0 12px 40px rgba(0, 217, 255, 0.35);
+    position: relative;
+    z-index: 1;
+  }
+  .video-play::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 18px solid var(--bg);
+    border-top: 11px solid transparent;
+    border-bottom: 11px solid transparent;
+    margin-left: 4px;
+  }
+
+  .video-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  .video-caption {
+    margin-top: 24px;
+    padding: 20px 24px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* -------------------------------------------------------------------- */
+  /* QUICKSTART                                                            */
+  /* -------------------------------------------------------------------- */
+  .quickstart {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .qs-step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .qs-step:last-child { border-bottom: none; }
+
+  .qs-num {
+    background: var(--bg-elevated);
+    display: grid;
+    place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    border-right: 1px solid var(--border);
+  }
+
+  .qs-body {
+    padding: 18px 24px;
+  }
+
+  .qs-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
     margin-bottom: 8px;
   }
 
-  .callout-title {
+  .qs-cmd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .qs-cmd .prompt { color: var(--green); margin-right: 8px; }
+  .qs-cmd .arg { color: var(--ens); }
+  .qs-cmd .str { color: var(--green); }
+  .qs-cmd .c   { color: var(--text-tertiary); font-style: italic; }
+
+  .qs-note {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* -------------------------------------------------------------------- */
+  /* STACK / WHAT'S IN THE BOX                                             */
+  /* -------------------------------------------------------------------- */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stack {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    transition: border-color 0.15s ease;
+  }
+  .stack:hover { border-color: var(--cyan-line); }
+
+  .stack-name {
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
     margin-bottom: 6px;
   }
 
-  .callout-body {
-    font-size: 13px;
+  .stack-role {
+    font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.5;
   }
 
-  /* -------------------------------------------------------------------- */
-  /* PLAN TIERS                                                            */
-  /* -------------------------------------------------------------------- */
-  .plan-progress-wrap {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    margin-bottom: 40px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .plan-progress-label {
+  .stack-mark {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: 11px;
+    color: var(--cyan);
+    background: var(--cyan-soft);
+    border: 1px solid var(--cyan-line);
+    padding: 3px 8px;
+    border-radius: 100px;
+    display: inline-block;
+    margin-bottom: 12px;
     letter-spacing: 0.05em;
-    text-transform: uppercase;
-    flex-shrink: 0;
   }
 
-  .progress-bar {
-    flex: 1;
-    height: 6px;
-    background: var(--bg);
-    border-radius: 100px;
-    overflow: hidden;
-    position: relative;
-  }
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--cyan), var(--ens));
-    border-radius: 100px;
-    width: 0%;
-    transition: width 0.4s ease;
-  }
-  .progress-text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    flex-shrink: 0;
-    font-variant-numeric: tabular-nums;
+  /* -------------------------------------------------------------------- */
+  /* TRACKS BANNER                                                         */
+  /* -------------------------------------------------------------------- */
+  .tracks {
+    background: var(--bg-elevated);
+    border-block: 1px solid var(--border);
+    padding: 64px 0;
   }
 
-  .tiers {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .tier {
+  .tracks-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: center;
+    padding: 36px 40px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    background-image:
+      radial-gradient(circle at 100% 50%, rgba(183, 148, 246, 0.06), transparent 50%),
+      radial-gradient(circle at 0% 50%, rgba(0, 217, 255, 0.06), transparent 50%);
   }
 
-  .tier-head {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 24px;
-    align-items: center;
-    padding: 28px 32px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tier-num {
+  .tracks-card .label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 11px;
     color: var(--cyan);
-    letter-spacing: 0.05em;
-    background: var(--cyan-soft);
-    padding: 6px 12px;
-    border-radius: 100px;
-    border: 1px solid var(--cyan-line);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
   }
 
-  .tier-title-block .tier-title {
-    font-size: 22px;
+  .tracks-card h3 {
+    font-size: 24px;
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.015em;
+    margin-bottom: 6px;
   }
 
-  .tier-title-block .tier-sub {
+  .tracks-card p {
     color: var(--text-secondary);
     font-size: 14px;
-    margin-top: 4px;
-  }
-
-  .tier-meta {
-    text-align: right;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-  .tier-meta strong {
-    color: var(--text);
-    font-size: 14px;
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  .tier-items {
-    list-style: none;
-  }
-
-  .tier-item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--border);
-    align-items: start;
-    transition: background 0.15s ease;
-  }
-  .tier-item:last-child { border-bottom: none; }
-  .tier-item:hover { background: var(--bg-card-hover); }
-
-  .tier-item.done .tier-item-title { text-decoration: line-through; color: var(--text-secondary); }
-  .tier-item.done .check { background: var(--cyan); border-color: var(--cyan); }
-  .tier-item.done .check::after {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    background: var(--bg);
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-  }
-
-  .check {
-    position: relative;
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--border-strong);
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 2px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-    flex-shrink: 0;
-  }
-  .check:hover { border-color: var(--cyan); }
-
-  .tier-item-body {
     line-height: 1.5;
   }
-  .tier-item-title {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  .tier-item-detail {
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
-  .tier-item-tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-  }
-  .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: var(--bg);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-  }
-  .tag.priority-critical { color: var(--danger); border-color: var(--danger); }
-  .tag.priority-high     { color: var(--warning); border-color: var(--warning); }
-  .tag.priority-med      { color: var(--cyan); border-color: var(--cyan-line); }
-  .tag.shipped           { color: var(--success); border-color: var(--success); }
-  .tag.ens               { color: var(--ens); border-color: rgba(183, 148, 246, 0.4); }
 
-  .tier-item-effort {
-    text-align: right;
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
-    margin-top: 4px;
-  }
-  .tier-item-effort strong {
-    display: block;
-    color: var(--text);
-    font-size: 14px;
-    margin-bottom: 2px;
-  }
-
-  /* -------------------------------------------------------------------- */
-  /* SCHEDULE TIMELINE                                                     */
-  /* -------------------------------------------------------------------- */
-  .schedule {
-    position: relative;
-    padding-left: 20px;
-  }
-  .schedule::before {
-    content: '';
-    position: absolute;
-    left: 7px;
-    top: 8px;
-    bottom: 8px;
-    width: 2px;
-    background: linear-gradient(to bottom, var(--cyan), var(--ens), transparent);
-    border-radius: 2px;
-  }
-
-  .schedule-day {
-    position: relative;
-    margin-bottom: 32px;
-    padding-left: 36px;
-  }
-  .schedule-day:last-child { margin-bottom: 0; }
-
-  .schedule-day::before {
-    content: '';
-    position: absolute;
-    left: -7px;
-    top: 6px;
-    width: 16px;
-    height: 16px;
-    background: var(--bg);
-    border: 3px solid var(--cyan);
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px var(--bg);
-  }
-
-  .schedule-day-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .schedule-day-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--cyan);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .schedule-day-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-
-  .schedule-day-tasks {
-    list-style: none;
+  .tracks-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
+    align-items: flex-end;
   }
 
-  .schedule-day-tasks li {
-    font-size: 14px;
-    color: var(--text);
-    padding-left: 24px;
-    position: relative;
-    line-height: 1.5;
-  }
-
-  .schedule-day-tasks li::before {
-    content: '→';
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: var(--cyan);
-    font-weight: 600;
-  }
-
-  .schedule-day-tasks li .who {
-    color: var(--text-tertiary);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    margin-left: 6px;
-  }
-
-  /* -------------------------------------------------------------------- */
-  /* DEMO STRATEGY                                                         */
-  /* -------------------------------------------------------------------- */
-  .demo-flow {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-    position: relative;
-  }
-
-  .act {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    position: relative;
-    transition: border-color 0.15s ease;
-  }
-  .act:hover { border-color: var(--cyan-line); }
-
-  .act-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--cyan);
-    font-weight: 600;
-    margin-bottom: 8px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .act-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-tertiary);
-    margin-bottom: 8px;
-  }
-
-  .act-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-    line-height: 1.3;
-  }
-
-  .act-desc {
+  .tracks-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 100px;
     font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-
-  .act.headline {
-    border-color: var(--cyan-line);
-    background: linear-gradient(135deg, var(--cyan-soft), transparent);
-  }
-
-  .demo-failures {
-    margin-top: 40px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 28px 32px;
-  }
-
-  .demo-failures-head {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--warning);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .demo-failures-list {
-    list-style: none;
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 12px 32px;
-    font-size: 14px;
-    align-items: start;
-  }
-
-  .demo-failures-list dt {
-    color: var(--text);
-    font-weight: 500;
-  }
-
-  .demo-failures-list dd {
     color: var(--text-secondary);
-    line-height: 1.5;
+    white-space: nowrap;
   }
 
-  /* -------------------------------------------------------------------- */
-  /* CHECKLIST                                                             */
-  /* -------------------------------------------------------------------- */
-  .submission-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 32px;
-  }
-
-  .submission-progress {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 32px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .submission-progress-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text-secondary);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .submission-progress .progress-bar { flex: 1; }
-
-  .checklist {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .checklist-item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 16px;
-    align-items: center;
-    padding: 14px 18px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: border-color 0.15s ease;
-  }
-
-  .checklist-item.done .check {
-    background: var(--success);
-    border-color: var(--success);
-  }
-  .checklist-item.done .check::after {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    background: var(--bg);
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-  }
-  .checklist-item.done .checklist-text {
-    text-decoration: line-through;
-    color: var(--text-secondary);
-  }
-
-  .checklist-text {
-    font-size: 15px;
-    color: var(--text);
-  }
-
-  .checklist-status {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  /* -------------------------------------------------------------------- */
-  /* SHIPPING LOG                                                          */
-  /* -------------------------------------------------------------------- */
-  .ships {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-
-  .ship {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    transition: border-color 0.15s ease, transform 0.15s ease;
-  }
-  .ship:hover {
-    border-color: var(--cyan-line);
-    transform: translateY(-2px);
-  }
-
-  .ship-branch {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--cyan);
-    margin-bottom: 8px;
-  }
-
-  .ship-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: 12px;
-  }
-
-  .ship-stats {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  .ship-stats span strong {
-    color: var(--text);
-  }
-
-  .ship-list {
-    list-style: none;
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .ship-list li {
-    padding-left: 16px;
-    position: relative;
-    line-height: 1.5;
-  }
-  .ship-list li::before {
-    content: '·';
-    position: absolute;
-    left: 4px;
-    top: -2px;
-    color: var(--cyan);
-    font-size: 18px;
-    font-weight: 700;
-  }
+  .tracks-pill.framework { color: var(--cyan); border-color: var(--cyan-line); background: var(--cyan-soft); }
+  .tracks-pill.ens       { color: var(--ens); border-color: rgba(183, 148, 246, 0.3); background: var(--ens-soft); }
 
   /* -------------------------------------------------------------------- */
   /* FOOTER                                                                */
@@ -1168,7 +915,6 @@
   footer {
     border-top: 1px solid var(--border);
     padding: 64px 0 80px;
-    margin-top: 80px;
   }
 
   .footer-grid {
@@ -1192,7 +938,6 @@
     color: var(--text-secondary);
     font-size: 14px;
     margin-bottom: 8px;
-    transition: color 0.15s ease;
   }
   .footer-col a:hover { color: var(--text); }
 
@@ -1212,42 +957,40 @@
     font-size: 12px;
     color: var(--text-tertiary);
     font-family: 'JetBrains Mono', monospace;
+    flex-wrap: wrap;
+    gap: 16px;
   }
 
   /* -------------------------------------------------------------------- */
   /* RESPONSIVE                                                            */
   /* -------------------------------------------------------------------- */
   @media (max-width: 980px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-    .hero h1 { font-size: 56px; }
-    .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .arch-callouts { grid-template-columns: repeat(2, 1fr); }
-    .demo-flow { grid-template-columns: 1fr; }
-    .ships { grid-template-columns: 1fr; }
-    .footer-grid { grid-template-columns: 1fr 1fr; }
-    .demo-failures-list { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
-    .tier-head { grid-template-columns: 1fr; gap: 12px; }
-    .tier-meta { text-align: left; }
-    .tier-item { grid-template-columns: auto 1fr; }
-    .tier-item-effort { grid-column: 2; text-align: left; margin-top: 8px; }
+    .hero-grid       { grid-template-columns: 1fr; gap: 48px; }
+    .hero h1         { font-size: 52px; }
+    .problem-grid    { grid-template-columns: 1fr; }
+    .caps            { grid-template-columns: 1fr; }
+    .agents          { grid-template-columns: 1fr; }
+    .stack-grid      { grid-template-columns: repeat(2, 1fr); }
+    .tracks-card     { grid-template-columns: 1fr; }
+    .tracks-list     { align-items: flex-start; }
+    .footer-grid     { grid-template-columns: 1fr 1fr; }
+    .nav-links       { gap: 16px; }
     .section-head h2 { font-size: 36px; }
   }
 
   @media (max-width: 640px) {
-    .hero h1 { font-size: 44px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .footer-grid { grid-template-columns: 1fr; }
-    section { padding: 64px 0; }
-    .container { padding: 0 20px; }
-    .arch-canvas { padding: 24px; }
+    .hero h1         { font-size: 40px; }
+    .footer-grid     { grid-template-columns: 1fr; }
+    section          { padding: 64px 0; }
+    .container       { padding: 0 20px; }
+    .arch-canvas     { padding: 24px; }
+    .stack-grid      { grid-template-columns: 1fr; }
+    .nav-links a:not(.nav-cta) { display: none; }
   }
 
-  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
@@ -1264,12 +1007,10 @@
       <span>0G-Claw</span>
     </a>
     <div class="nav-links">
-      <a href="#status">Status</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#plan">Plan</a>
-      <a href="#schedule">Schedule</a>
-      <a href="#demo">Demo</a>
-      <a href="#submission">Submission</a>
+      <a href="#how">How it works</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#agents">Agents</a>
+      <a href="#try">Try it</a>
       <a class="nav-cta" href="https://github.com/DarienPerezGit/0G-CLAW" target="_blank" rel="noopener">GitHub →</a>
     </div>
   </div>
@@ -1281,185 +1022,93 @@
     <div class="hero-grid">
       <div class="hero-content">
         <div class="badge-row">
-          <span class="badge cyan"><span class="dot"></span> ETHGlobal Open Agents</span>
-          <span class="badge">Galileo Testnet · Live</span>
-          <span class="badge">MIT Licensed</span>
+          <span class="badge green"><span class="dot live"></span> Galileo testnet · live</span>
+          <span class="badge cyan"><span class="dot"></span> 21/21 verifiable inference tests</span>
+          <span class="badge">MIT licensed</span>
         </div>
-        <h1>OpenClaw, but your agent <span class="accent">never forgets</span> — and never depends on Big Tech.</h1>
-        <p class="tagline">Decentralized memory via 0G Storage. Verifiable inference via 0G Compute. Two reference agents on the same adapter layer prove the framework supports any shape.</p>
+        <h1>Decentralized AI agents that <span class="accent">actually remember</span>.</h1>
+        <p class="tagline">0G-Claw is OpenClaw with memory in 0G Storage and inference in 0G Compute. Two reference agents on the same adapter contracts — proof the framework supports any shape.</p>
         <div class="hero-ctas">
-          <a class="btn btn-primary" href="#plan">Read the plan <span aria-hidden="true">→</span></a>
-          <a class="btn btn-secondary" href="#status">Current status</a>
+          <a class="btn btn-primary" href="#video">Watch the demo <span aria-hidden="true">→</span></a>
+          <a class="btn btn-secondary" href="https://github.com/DarienPerezGit/0G-CLAW" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn-ghost" href="#try">Try it locally</a>
         </div>
       </div>
 
-      <aside class="prize-panel">
-        <div class="prize-panel-head">
-          <span class="prize-panel-title">Prize tracks targeted</span>
-          <span class="badge cyan"><span class="dot"></span> 2 of 2</span>
+      <aside class="terminal" aria-label="Sample agent run">
+        <div class="term-bar">
+          <span class="term-dot red"></span>
+          <span class="term-dot yellow"></span>
+          <span class="term-dot green"></span>
+          <span class="term-title">research-agent · live on Galileo</span>
         </div>
-        <div class="prize-list">
-          <div class="prize framework">
-            <div class="prize-meta">
-              <div class="track-name">Best Agent Framework</div>
-              <div class="track-status">Tooling &amp; core extensions</div>
-            </div>
-            <div class="prize-amount">$7,500</div>
-          </div>
-          <div class="prize ens">
-            <div class="prize-meta">
-              <div class="track-name">ENS AI Agents</div>
-              <div class="track-status">Identity at agent creation</div>
-            </div>
-            <div class="prize-amount">$2,500</div>
-          </div>
-        </div>
-        <div class="prize-total">
-          <span class="prize-total-label">Combined target</span>
-          <span class="prize-total-amount">$10,000</span>
-        </div>
+        <div class="term-body"><span class="prompt">$</span> <span class="cmd">RESEARCH_TOPIC=<span class="accent">"0G Network architecture"</span> \</span>
+    <span class="cmd">MEMORY_ADAPTER=0g COMPUTE_ADAPTER=0g \</span>
+    <span class="cmd">pnpm example:research</span>
+
+<span class="out-dim">[plan]</span> <span class="out">Generating sub-questions…</span>
+<span class="out-dim">[plan]</span> <span class="out">4 sub-questions:</span>
+  <span class="out">1. What is the 0G Network architecture?</span>
+  <span class="out">2. How does 0G Storage differ from existing solutions?</span>
+  <span class="out">3. What is 0G Compute and verifiable inference?</span>
+  <span class="out">4. How does the 0G chain anchor the stack?</span>
+
+<span class="out-dim">[research]</span> <span class="out">Q1/4: What is the 0G Network architecture?</span>
+  <span class="arrow">→</span> <span class="out">source: wikipedia:0G_Network</span>
+  <span class="arrow">→</span> <span class="out">summary: 0G is a decentralized AI infra protocol with…</span>
+  <span class="arrow">→</span> <span class="hash">verificationHash: 0xa48f01…c9bd47</span> <span class="out-dim">(0G TeeML)</span>
+  <span class="arrow">→</span> <span class="ok">persisted to KV + Log</span>
+
+<span class="out-dim">[synthesis]</span> <span class="out">Producing final report…</span>
+  <span class="arrow">→</span> <span class="hash">verificationHash: 0xb912ee…74203a</span>
+
+<span class="ok">━━━ Report — 0G Network architecture ━━━</span>
+<span class="out">0G is a decentralized AI infrastructure that combines…<span class="blink"></span></span></div>
       </aside>
     </div>
   </div>
 </header>
 
-<!-- ========== STATS BAR ========== -->
-<section class="stats-bar" style="padding-top: 40px; padding-bottom: 40px;">
+<!-- ========== PROBLEM / SOLUTION ========== -->
+<section class="problem">
   <div class="container">
-    <div class="stats-grid">
-      <div class="stat">
-        <div class="stat-value">2</div>
-        <div class="stat-label">Reference agents on shared adapter layer</div>
+    <div class="section-head">
+      <div class="eyebrow">The problem</div>
+      <h2>Personal AI agents are stuck on local disk and centralized inference.</h2>
+      <p class="lede">Lose the laptop, lose the agent. Trust the model? Trust the API key. Two failure modes any "AI assistant" inherits the moment it goes to production.</p>
+    </div>
+
+    <div class="problem-grid">
+      <div class="problem-card before">
+        <span class="problem-tag">OpenClaw today</span>
+        <h3>Local-first, single-tenant, opaque</h3>
+        <ul>
+          <li>Memory lives in <code>~/.openclaw/agents/&lt;id&gt;/sessions/*.jsonl</code>. Disk dies, agent dies.</li>
+          <li>Inference goes to OpenAI / Anthropic. Censorable, opaque, vendor-locked.</li>
+          <li>Agent identity is the laptop. Nothing portable, nothing addressable.</li>
+        </ul>
       </div>
-      <div class="stat">
-        <div class="stat-value">79 / 107</div>
-        <div class="stat-label">Vitest cases passing (28 skipped — no testnet creds)</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">21 / 21</div>
-        <div class="stat-label">0G Compute live integration tests passing</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">0</div>
-        <div class="stat-label">New dependencies in research-agent</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">3 OG</div>
-        <div class="stat-label">Funded compute broker on Galileo</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">4</div>
-        <div class="stat-label">Branches ready (<code>main</code>, <code>chore/demo-readiness</code>, <code>feat/research-agent</code>, <code>docs/winning-plan-site</code>)</div>
+
+      <div class="problem-card after">
+        <span class="problem-tag">0G-Claw</span>
+        <h3>Decentralized, portable, verifiable</h3>
+        <ul>
+          <li>Memory persists in <strong>0G Storage</strong> (KV for state, Log for history).</li>
+          <li>Inference runs on <strong>0G Compute</strong> with TeeML proofs on every call.</li>
+          <li>Same wallet, any machine, same agent — identity is portable, not local.</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ========== STATUS ========== -->
-<section id="status">
+<!-- ========== HOW IT WORKS ========== -->
+<section id="how">
   <div class="container">
     <div class="section-head">
-      <div class="eyebrow">01 · Where we stand</div>
-      <h2>What works today</h2>
-      <p class="lede">Both 0G adapters are live against Galileo testnet. The compute broker is funded with 3 OG and the provider signer is acknowledged. Two reference agents share the same adapter contract — proof the framework is real, not bespoke.</p>
-    </div>
-
-    <table class="status-table">
-      <thead>
-        <tr>
-          <th style="width: 36%">Component</th>
-          <th style="width: 18%">Status</th>
-          <th>Note</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="component"><code>IMemoryAdapter</code> &amp; <code>IComputeAdapter</code></td>
-          <td><span class="pill success"><span class="dot"></span> Stable</span></td>
-          <td class="note">The framework's only contracts. Adapters are the only files touching 0G infra.</td>
-        </tr>
-        <tr>
-          <td class="component">0GMemoryAdapter — KV (sessions)</td>
-          <td><span class="pill success"><span class="dot"></span> Live</span></td>
-          <td class="note">Integration tests run against real Galileo testnet, not mocks.</td>
-        </tr>
-        <tr>
-          <td class="component">0GMemoryAdapter — Log (history)</td>
-          <td><span class="pill success"><span class="dot"></span> Live</span></td>
-          <td class="note">Append-only — the surface that powers replayable execution.</td>
-        </tr>
-        <tr>
-          <td class="component">0GComputeAdapter (verifiable inference)</td>
-          <td><span class="pill success"><span class="dot"></span> 21/21</span></td>
-          <td class="note">Provider <code>0xa48f01…</code> · model <code>qwen/qwen-2.5-7b-instruct</code> · returns <code>verificationHash</code> per call.</td>
-        </tr>
-        <tr>
-          <td class="component">Compute broker</td>
-          <td><span class="pill success"><span class="dot"></span> Funded</span></td>
-          <td class="note">Ledger funded with 3 OG, provider signer acknowledged.</td>
-        </tr>
-        <tr>
-          <td class="component">Local fallback adapters</td>
-          <td><span class="pill success"><span class="dot"></span> Stable</span></td>
-          <td class="note">LocalMemoryAdapter + LocalComputeAdapter run without any 0G credentials.</td>
-        </tr>
-        <tr>
-          <td class="component">basic-agent (chat loop)</td>
-          <td><span class="pill success"><span class="dot"></span> End-to-end</span></td>
-          <td class="note">Both interactive (TTY) and scripted (Docker / CI) modes.</td>
-        </tr>
-        <tr>
-          <td class="component">research-agent (plan→research→synthesize)</td>
-          <td><span class="pill success"><span class="dot"></span> Shipped</span></td>
-          <td class="note">Pipeline pattern · WikipediaSearchTool · 28 dedicated tests · durability recovery from log.</td>
-        </tr>
-        <tr>
-          <td class="component">research-agent <code>inspect</code> command</td>
-          <td><span class="pill success"><span class="dot"></span> Shipped</span></td>
-          <td class="note">Read-only viewer — concrete demo of "shared memory across agents".</td>
-        </tr>
-        <tr>
-          <td class="component">Docker — single-container demo</td>
-          <td><span class="pill success"><span class="dot"></span> Working</span></td>
-          <td class="note"><code>./data/</code> survives <code>docker compose down</code> via <code>HOME=/app</code> wiring.</td>
-        </tr>
-        <tr>
-          <td class="component">GitHub Actions CI</td>
-          <td><span class="pill success"><span class="dot"></span> Configured</span></td>
-          <td class="note">Build + test on every push to <code>main</code> and every PR.</td>
-        </tr>
-        <tr>
-          <td class="component">LICENSE (MIT)</td>
-          <td><span class="pill success"><span class="dot"></span> Done</span></td>
-          <td class="note">Required by GitHub conventions; was missing pre-polish pass.</td>
-        </tr>
-        <tr>
-          <td class="component">ENS identity at agent creation</td>
-          <td><span class="pill warning"><span class="dot"></span> Planned</span></td>
-          <td class="note">Targets the ENS AI Agents track ($2,500). Bonus prize if shipped before deadline.</td>
-        </tr>
-        <tr>
-          <td class="component">Multi-device validation (live evidence)</td>
-          <td><span class="pill warning"><span class="dot"></span> Planned</span></td>
-          <td class="note">Two laptops, same wallet, same topic — record the moment.</td>
-        </tr>
-        <tr>
-          <td class="component">Demo video (under 3 minutes)</td>
-          <td><span class="pill danger"><span class="dot"></span> Required</span></td>
-          <td class="note">Submission requirement. Script ready in <code>docs/DEMO_SCRIPT.md</code>.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ========== ARCHITECTURE ========== -->
-<section id="architecture">
-  <div class="container">
-    <div class="section-head">
-      <div class="eyebrow">02 · How it composes</div>
-      <h2>Two interfaces. Many agents. Zero coupling.</h2>
-      <p class="lede">The adapter pattern is the contract. OpenClaw doesn't know which memory or compute backend is wired. Two example agents prove the contract is real — both use the same primitives, in completely different shapes.</p>
+      <div class="eyebrow">How it works</div>
+      <h2>Two interfaces. Many adapters. Zero coupling.</h2>
+      <p class="lede">Memory and compute are TypeScript interfaces. <code>IMemoryAdapter</code> and <code>IComputeAdapter</code> are the only contracts the agent sees. Implementations are swappable: 0G in production, local for CI, anything else for your own deployment.</p>
     </div>
 
     <div class="arch-canvas">
@@ -1469,10 +1118,6 @@
             <stop offset="0%" stop-color="#00d9ff" stop-opacity="0.7"/>
             <stop offset="100%" stop-color="#00d9ff" stop-opacity="0.2"/>
           </linearGradient>
-          <linearGradient id="ensGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#b794f6" stop-opacity="0.7"/>
-            <stop offset="100%" stop-color="#b794f6" stop-opacity="0.2"/>
-          </linearGradient>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#5c6068"/>
           </marker>
@@ -1481,7 +1126,6 @@
           </marker>
         </defs>
 
-        <!-- Background grid (subtle) -->
         <g opacity="0.06" stroke="#00d9ff" stroke-width="1">
           <path d="M 0 100 L 1100 100" />
           <path d="M 0 220 L 1100 220" />
@@ -1489,26 +1133,23 @@
           <path d="M 0 460 L 1100 460" />
         </g>
 
-        <!-- Top row: agents -->
         <g>
-          <!-- basic-agent -->
           <rect x="100" y="40" width="380" height="100" rx="14" fill="#131318" stroke="#1d1d24" stroke-width="1.5"/>
           <text x="120" y="68" fill="#9ca0aa" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">EXAMPLE · CHAT LOOP</text>
           <text x="120" y="95" fill="#f4f5f7" font-family="Inter, sans-serif" font-size="22" font-weight="700">basic-agent</text>
           <text x="120" y="120" fill="#9ca0aa" font-family="Inter, sans-serif" font-size="13">Multi-turn conversation · context window · TTY + scripted modes</text>
 
-          <!-- research-agent -->
           <rect x="620" y="40" width="380" height="100" rx="14" fill="#131318" stroke="#1d1d24" stroke-width="1.5"/>
           <text x="640" y="68" fill="#9ca0aa" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">EXAMPLE · RESEARCH PIPELINE</text>
           <text x="640" y="95" fill="#f4f5f7" font-family="Inter, sans-serif" font-size="22" font-weight="700">research-agent</text>
           <text x="640" y="120" fill="#9ca0aa" font-family="Inter, sans-serif" font-size="13">plan → research(loop) → synthesize · WikipediaSearchTool</text>
         </g>
 
-        <!-- Connecting arrows down to interfaces -->
         <line x1="290" y1="140" x2="290" y2="180" stroke="#5c6068" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrowhead)"/>
         <line x1="810" y1="140" x2="810" y2="180" stroke="#5c6068" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrowhead)"/>
+        <line x1="290" y1="140" x2="790" y2="190" stroke="#5c6068" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+        <line x1="810" y1="140" x2="310" y2="190" stroke="#5c6068" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
 
-        <!-- Middle row: interfaces -->
         <g>
           <rect x="160" y="190" width="300" height="80" rx="12" fill="rgba(0, 217, 255, 0.06)" stroke="#00d9ff" stroke-width="1.5" stroke-dasharray="6 4"/>
           <text x="180" y="218" fill="#00d9ff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">CONTRACT</text>
@@ -1521,15 +1162,9 @@
           <text x="660" y="260" fill="#9ca0aa" font-family="JetBrains Mono, monospace" font-size="11">chat (returns verificationHash) · healthCheck</text>
         </g>
 
-        <!-- Diagonals from agents to BOTH interfaces -->
-        <line x1="290" y1="140" x2="790" y2="190" stroke="#5c6068" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
-        <line x1="810" y1="140" x2="310" y2="190" stroke="#5c6068" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
-
-        <!-- Connect interfaces to implementations -->
         <line x1="310" y1="270" x2="310" y2="310" stroke="#5c6068" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrowhead)"/>
         <line x1="790" y1="270" x2="790" y2="310" stroke="#5c6068" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrowhead)"/>
 
-        <!-- Implementations -->
         <g>
           <rect x="100" y="320" width="180" height="64" rx="10" fill="#0d0d10" stroke="#1d1d24" stroke-width="1"/>
           <text x="115" y="345" fill="#9ca0aa" font-family="JetBrains Mono, monospace" font-size="10">IMPL</text>
@@ -1548,11 +1183,9 @@
           <text x="835" y="368" fill="#f4f5f7" font-family="Inter, sans-serif" font-size="14" font-weight="600">LocalComputeAdapter</text>
         </g>
 
-        <!-- Down arrows to infrastructure -->
         <line x1="190" y1="384" x2="190" y2="430" stroke="#00d9ff" stroke-width="1.5" marker-end="url(#arrowheadCyan)"/>
         <line x1="710" y1="384" x2="710" y2="430" stroke="#00d9ff" stroke-width="1.5" marker-end="url(#arrowheadCyan)"/>
 
-        <!-- Infrastructure -->
         <g>
           <rect x="60" y="440" width="260" height="68" rx="12" fill="url(#cyanGrad)" opacity="0.85" stroke="#00d9ff" stroke-width="1.5"/>
           <text x="80" y="466" fill="#0a0a0a" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">0G STORAGE · GALILEO</text>
@@ -1564,597 +1197,231 @@
         </g>
       </svg>
     </div>
-
-    <div class="arch-callouts">
-      <div class="callout">
-        <div class="callout-num">01</div>
-        <div class="callout-title">Verifiable inference</div>
-        <div class="callout-body">Every <code>chat()</code> from 0GComputeAdapter returns a <code>verificationHash</code>. Surfaced per turn in basic-agent and per finding in research-agent.</div>
-      </div>
-      <div class="callout">
-        <div class="callout-num">02</div>
-        <div class="callout-title">Shared memory</div>
-        <div class="callout-body">Same wallet + same topic = same memory namespace, anywhere. The research-agent derives <code>agentId</code> from <code>sha256(topic)</code>.</div>
-      </div>
-      <div class="callout">
-        <div class="callout-num">03</div>
-        <div class="callout-title">Replayable execution</div>
-        <div class="callout-body">The Log Store is append-only. The full report can be reconstructed from the log alone via <code>loadHistory</code>.</div>
-      </div>
-      <div class="callout">
-        <div class="callout-num">04</div>
-        <div class="callout-title">Portable identity</div>
-        <div class="callout-body">The wallet <em>is</em> the identity. Run from any machine — same agent. ENS will make this addressable by name (track 2).</div>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- ========== PLAN ========== -->
-<section id="plan">
+<!-- ========== CAPABILITIES ========== -->
+<section id="capabilities">
   <div class="container">
     <div class="section-head">
-      <div class="eyebrow">03 · Winner-mode roadmap</div>
-      <h2>The plan to take this to submission.</h2>
-      <p class="lede">Four tiers, ordered by impact-on-winning. Tick items as Juan + Darien complete them — your progress persists in the browser. Anything tagged <span class="tag shipped" style="display:inline-flex;">SHIPPED</span> is already in the repo as of today.</p>
+      <div class="eyebrow">Capabilities</div>
+      <h2>Four properties you can't get from a local-first agent.</h2>
+      <p class="lede">Each capability shows up in code, not slogans. The framework's only job is making sure these are the cheap default — adapters do the heavy lifting.</p>
     </div>
 
-    <div class="plan-progress-wrap">
-      <span class="plan-progress-label">Plan progress</span>
-      <div class="progress-bar"><div class="progress-bar-fill" id="planProgressFill" style="width: 27%"></div></div>
-      <!-- Initial value reflects items pre-marked done in HTML; JS recalculates on click. -->
-      <span class="progress-text" id="planProgressText">4 / 15</span>
-    </div>
-
-    <div class="tiers" id="tiers">
-
-      <!-- TIER 1 -->
-      <article class="tier" data-tier="1">
-        <header class="tier-head">
-          <span class="tier-num">Tier 01 · Critical</span>
-          <div class="tier-title-block">
-            <div class="tier-title">Things the README already promises but hasn't delivered.</div>
-            <div class="tier-sub">Without these we either lose a track or fail the submission requirement.</div>
-          </div>
-          <div class="tier-meta">
-            <strong>Effort: ~7-9h</strong>
-            ROI: prize-determining
-          </div>
-        </header>
-        <ul class="tier-items">
-          <li class="tier-item" data-id="t1-ens">
-            <span class="check" role="checkbox" tabindex="0" aria-label="ENS integration"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">ENS identity at agent creation</div>
-              <div class="tier-item-detail">At boot, write text records on a wallet-controlled ENS name (Sepolia testnet to avoid mainnet gas): <code>0gclaw.memory</code> → KV root hash, <code>0gclaw.model</code> → provider address, <code>0gclaw.topic</code> for research-agent. Add a <code>resolve-agent</code> command that resolves an ENS name back to its memory.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-critical">CRITICAL</span>
-                <span class="tag ens">ENS · $2,500</span>
-                <span class="tag">@ensdomains/ensjs already installed</span>
-                <span class="tag">prereq: own a parent .eth (testnet OK)</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>4–6h</strong>direct prize</div>
-          </li>
-
-          <li class="tier-item" data-id="t1-video">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Demo video"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Record the demo video (&lt; 3 min)</div>
-              <div class="tier-item-detail">Submission requirement — without it ETHGlobal won't accept. Script is ready in <code>docs/DEMO_SCRIPT.md</code> with timing per act. Plan: 5 acts (hook, headline memory demo, verifiable inference proof, fallback, close).</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-critical">CRITICAL</span>
-                <span class="tag">submission requirement</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>1–2h</strong>retakes included</div>
-          </li>
-
-          <li class="tier-item" data-id="t1-multidevice">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Multi-device validation"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Multi-device validation — record the proof</div>
-              <div class="tier-item-detail">Juan's laptop runs <code>RESEARCH_TOPIC=… pnpm example:research</code>. Darien's laptop with the same wallet runs <code>example:research:inspect</code> — sees every finding + verificationHash without ever calling compute. 30-second clip → headline of the demo video.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-critical">CRITICAL</span>
-                <span class="tag">framework demo</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>~1h</strong>"wow" moment</div>
-          </li>
-        </ul>
+    <div class="caps">
+      <article class="cap">
+        <div class="cap-num">CAPABILITY 01</div>
+        <div class="cap-title">Verifiable inference</div>
+        <p class="cap-desc">Every <code>chat()</code> from <code>0GComputeAdapter</code> returns a TeeML proof. The agent surfaces it per turn — no model can be silently swapped behind a proxy.</p>
+        <pre class="cap-snippet"><span class="k">const</span> result = <span class="k">await</span> compute.<span class="t">chat</span>(messages);
+<span class="c">// → result.content</span>
+<span class="c">// → result.verificationHash: "0xabc…"</span>
+<span class="c">//   ↑ provider-signed TeeML proof</span></pre>
       </article>
 
-      <!-- TIER 2 -->
-      <article class="tier" data-tier="2">
-        <header class="tier-head">
-          <span class="tier-num">Tier 02 · High-impact polish</span>
-          <div class="tier-title-block">
-            <div class="tier-title">Visual + structural wins that judges absorb in seconds.</div>
-            <div class="tier-sub">First impression of a hackathon repo decides 30% of the score.</div>
-          </div>
-          <div class="tier-meta">
-            <strong>Effort: ~3h</strong>
-            ROI: high-per-hour
-          </div>
-        </header>
-        <ul class="tier-items">
-          <li class="tier-item done" data-id="t2-ci">
-            <span class="check" role="checkbox" tabindex="0" aria-label="GitHub Actions CI"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">GitHub Actions CI workflow</div>
-              <div class="tier-item-detail">Every push and PR runs <code>pnpm install</code>, <code>pnpm build</code>, <code>pnpm test</code>. Green checkmarks visible on the GitHub PR page. Live integration tests gate themselves on env vars, so CI is fast and credential-free.</div>
-              <div class="tier-item-tags">
-                <span class="tag shipped">SHIPPED</span>
-                <span class="tag">commit 7d79128</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>30 min</strong>shipped</div>
-          </li>
-
-          <li class="tier-item done" data-id="t2-license">
-            <span class="check" role="checkbox" tabindex="0" aria-label="LICENSE file"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">LICENSE file (MIT)</div>
-              <div class="tier-item-detail">README claimed MIT since day one but the file was missing. GitHub displays "View license" prominently when present. Standard MIT text, attributed to "0G-Claw contributors".</div>
-              <div class="tier-item-tags">
-                <span class="tag shipped">SHIPPED</span>
-                <span class="tag">commit 7d79128</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>2 min</strong>shipped</div>
-          </li>
-
-          <li class="tier-item done" data-id="t2-inspect">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Inspect command"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title"><code>example:research:inspect</code> — read-only viewer</div>
-              <div class="tier-item-detail">Loads a topic's cached research from memory and prints findings + per-finding verificationHash + the report — without invoking compute or any tools. The single most direct demonstration of "shared memory across agents".</div>
-              <div class="tier-item-tags">
-                <span class="tag shipped">SHIPPED</span>
-                <span class="tag">commit 7d79128</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>1h</strong>shipped</div>
-          </li>
-
-          <li class="tier-item" data-id="t2-logo">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Logo / banner"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Logo + README banner image</div>
-              <div class="tier-item-detail">Project currently looks "all code". A simple wordmark + banner (Canva or Figma, 30 minutes) makes it memorable. Embed at the top of README.md.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-high">HIGH</span>
-                <span class="tag">visual identity</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>30 min</strong>cheap polish</div>
-          </li>
-
-          <li class="tier-item" data-id="t2-prerecord">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Pre-recorded demo session"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Pre-recorded demo session</div>
-              <div class="tier-item-detail">Run research-agent on 3 demo topics with full 0G stack live. Snapshot the resulting <code>~/.0g-claw</code> + screenshots. Bundle as a <code>demo-data</code> branch. If Galileo is slow during the live demo, switch to the cached session — same content, no testnet dependency.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-high">HIGH</span>
-                <span class="tag">risk reduction</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>~1h</strong>insurance</div>
-          </li>
-        </ul>
+      <article class="cap">
+        <div class="cap-num">CAPABILITY 02</div>
+        <div class="cap-title">Shared memory across agents</div>
+        <p class="cap-desc">The agent ID is derived from the topic, not the laptop. Two processes — same wallet, same topic — read and write the same 0G namespace. No central orchestrator.</p>
+        <pre class="cap-snippet"><span class="k">const</span> agentId = <span class="s">`research-${</span><span class="t">sha256</span>(topic).<span class="t">slice</span>(<span class="s">0, 8</span>)<span class="s">}`</span>;
+<span class="c">// → research-7f3a2c19</span>
+<span class="c">// Same on any machine with the same wallet.</span></pre>
       </article>
 
-      <!-- TIER 3 -->
-      <article class="tier" data-tier="3">
-        <header class="tier-head">
-          <span class="tier-num">Tier 03 · Technical depth</span>
-          <div class="tier-title-block">
-            <div class="tier-title">Strengthens the framework story for the $7,500 track.</div>
-            <div class="tier-sub">A judge asking "ok but is this really a framework?" — we want concrete answers.</div>
-          </div>
-          <div class="tier-meta">
-            <strong>Effort: ~4-5h</strong>
-            ROI: framework track depth
-          </div>
-        </header>
-        <ul class="tier-items">
-          <li class="tier-item" data-id="t3-multi-agent">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Multi-agent coordination demo"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Multi-agent coordination demo</div>
-              <div class="tier-item-detail">Two research-agent processes on the same topic split sub-questions: agent A handles Q1+Q2, agent B handles Q3+Q4, both write to the same 0G namespace. Final report cites findings from both. This converts "shared memory" from slogan to demo.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-high">HIGH</span>
-                <span class="tag">framework story</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>~2h</strong>differentiation</div>
-          </li>
-
-          <li class="tier-item" data-id="t3-itool">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Promote ITool to framework primitive"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Promote <code>ITool</code> to framework primitive</div>
-              <div class="tier-item-detail">Move <code>examples/research-agent/tools/ITool.ts</code> to <code>adapters/tools/IToolAdapter.ts</code>. Re-export the existing tools. Framework now has 3 contracts (memory + compute + tools) instead of 2. <strong>Touches <code>adapters/</code> — needs Darien sign-off.</strong></div>
-              <div class="tier-item-tags">
-                <span class="tag priority-med">MEDIUM</span>
-                <span class="tag">requires Darien approval</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>~2h</strong>+ review</div>
-          </li>
-
-          <li class="tier-item" data-id="t3-disambig">
-            <span class="check" role="checkbox" tabindex="0" aria-label="Wikipedia disambiguation handling"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">Smarter Wikipedia disambiguation handling</div>
-              <div class="tier-item-detail">When the top hit returns "may refer to:", fetch the second result instead. Improves finding quality on broad sub-questions during real research runs.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-med">MEDIUM</span>
-                <span class="tag">edge case polish</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>~1h</strong>nicer demos</div>
-          </li>
-        </ul>
+      <article class="cap">
+        <div class="cap-num">CAPABILITY 03</div>
+        <div class="cap-title">Replayable execution</div>
+        <p class="cap-desc">Every state mutation goes to an append-only Log Store. The full report can be reconstructed from the log alone, even if the snapshot is lost.</p>
+        <pre class="cap-snippet"><span class="k">const</span> history = <span class="k">await</span> memory.<span class="t">loadHistory</span>(agentId, sessionId);
+<span class="c">// → SessionMessage[] in causal order</span>
+<span class="c">// Every Finding, every retry, fully ordered.</span></pre>
       </article>
 
-      <!-- TIER 4 -->
-      <article class="tier" data-tier="4">
-        <header class="tier-head">
-          <span class="tier-num">Tier 04 · Hygiene</span>
-          <div class="tier-title-block">
-            <div class="tier-title">Cheap defenses against unforced errors.</div>
-            <div class="tier-sub">A reviewer who finds a missing LICENSE files away with a sour first impression.</div>
-          </div>
-          <div class="tier-meta">
-            <strong>Effort: ~1h total</strong>
-            ROI: defensive
-          </div>
-        </header>
-        <ul class="tier-items">
-          <li class="tier-item done" data-id="t4-license">
-            <span class="check" role="checkbox" tabindex="0" aria-label="LICENSE done"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">LICENSE (MIT) — see Tier 02</div>
-              <div class="tier-item-detail">Already shipped. Listed here so the hygiene tier reads complete.</div>
-              <div class="tier-item-tags">
-                <span class="tag shipped">SHIPPED</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>—</strong>shipped</div>
-          </li>
-
-          <li class="tier-item" data-id="t4-health">
-            <span class="check" role="checkbox" tabindex="0" aria-label="pnpm health script"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title"><code>pnpm health</code> — one-command preflight</div>
-              <div class="tier-item-detail">Runs <code>check:testnet</code> + <code>build</code> + <code>test</code> + a Wikipedia ping. One green output before going on stage.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-med">MEDIUM</span>
-                <span class="tag">internal use</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>30 min</strong>peace of mind</div>
-          </li>
-
-          <li class="tier-item" data-id="t4-audit">
-            <span class="check" role="checkbox" tabindex="0" aria-label="pnpm audit"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title"><code>pnpm audit</code> + dependency review</div>
-              <div class="tier-item-detail">Confirm no public vulnerabilities in shipped deps. Pin transitive ranges if any flag.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-med">MEDIUM</span>
-                <span class="tag">defensive</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>15 min</strong>insurance</div>
-          </li>
-
-          <li class="tier-item" data-id="t4-readme-merge">
-            <span class="check" role="checkbox" tabindex="0" aria-label="README post-merge cleanup"></span>
-            <div class="tier-item-body">
-              <div class="tier-item-title">README reconciliation after both PRs merge</div>
-              <div class="tier-item-detail"><code>chore/demo-readiness</code> rewrites README; <code>feat/research-agent</code> patches it additively. After both land on <code>main</code>, do a single follow-up commit unifying the structure.</div>
-              <div class="tier-item-tags">
-                <span class="tag priority-med">MEDIUM</span>
-                <span class="tag">post-merge</span>
-              </div>
-            </div>
-            <div class="tier-item-effort"><strong>15 min</strong>cleanup</div>
-          </li>
-        </ul>
+      <article class="cap">
+        <div class="cap-num">CAPABILITY 04</div>
+        <div class="cap-title">Portable identity</div>
+        <p class="cap-desc">The wallet <em>is</em> the identity. Run from any machine, same agent appears. ENS integration (planned) makes it addressable by name.</p>
+        <pre class="cap-snippet"><span class="c">$ MEMORY_ADAPTER=0g pnpm example:research</span>
+<span class="c">$ <span class="t"># laptop B, same wallet:</span></span>
+<span class="c">$ MEMORY_ADAPTER=0g pnpm example:research</span>
+<span class="c">  → "Found 4 prior findings — skipping"</span></pre>
       </article>
     </div>
   </div>
 </section>
 
-<!-- ========== SCHEDULE ========== -->
-<section id="schedule">
+<!-- ========== AGENTS COMPARISON ========== -->
+<section id="agents">
   <div class="container">
     <div class="section-head">
-      <div class="eyebrow">04 · Day-by-day</div>
-      <h2>What happens, in what order, before submission.</h2>
-      <p class="lede">Each day has a single primary goal. Buffer is built into Day 4 so a network outage or a bad take in the demo recording doesn't sink the submission.</p>
+      <div class="eyebrow">Reference agents</div>
+      <h2>Two agent shapes on the same adapters.</h2>
+      <p class="lede">A framework is only a framework if it supports more than one agent. We ship two — a chat loop and a research pipeline — built on the same <code>IMemoryAdapter</code> + <code>IComputeAdapter</code> contracts. Zero coupling between them.</p>
     </div>
 
-    <div class="schedule">
-      <div class="schedule-day">
-        <div class="schedule-day-head">
-          <span class="schedule-day-num">Day 1</span>
-          <span class="schedule-day-title">ENS integration</span>
+    <div class="agents">
+      <article class="agent">
+        <div class="agent-head">
+          <div class="agent-name">basic-agent</div>
+          <div class="agent-pattern">CHAT LOOP</div>
         </div>
-        <ul class="schedule-day-tasks">
-          <li><strong>Prereq</strong>: confirm whether the team owns a parent <code>.eth</code> domain. If not, either register one (~$5/year on mainnet, free on Sepolia testnet) or pivot to writing records on an existing wallet-controlled name. Decide before writing code <span class="who">(Juan + Darien)</span></li>
-          <li>Add <code>adapters/identity/ENSIdentityAdapter.ts</code> with <code>@ensdomains/ensjs</code> <span class="who">(Juan + Darien — touches adapters)</span></li>
-          <li>At basic-agent + research-agent boot, register / update text records on <code>&lt;label&gt;.&lt;parent&gt;.eth</code> if <code>ENS_AGENT_LABEL</code> set <span class="who">(Juan)</span></li>
-          <li>Text record keys: <code>0gclaw.memory</code> (KV root hash), <code>0gclaw.model</code> (provider address), <code>0gclaw.topic</code> (research-agent only) <span class="who">(Juan)</span></li>
-          <li>New <code>scripts/resolve-agent.ts</code> — takes ENS name, prints memory roots <span class="who">(Juan)</span></li>
-          <li>Tests against ENS Sepolia testnet (no mainnet gas) <span class="who">(Juan)</span></li>
-        </ul>
-      </div>
-
-      <div class="schedule-day">
-        <div class="schedule-day-head">
-          <span class="schedule-day-num">Day 2</span>
-          <span class="schedule-day-title">Multi-device validation + pre-recorded sessions</span>
-        </div>
-        <ul class="schedule-day-tasks">
-          <li>Two laptops, same wallet, same topic — run <code>example:research</code> on A, <code>example:research:inspect</code> on B <span class="who">(Juan + Darien)</span></li>
-          <li>Record the moment as a 30-second clip — this is the demo's "wow" beat <span class="who">(Juan)</span></li>
-          <li>Run research-agent against 3 curated topics with full 0G stack — save sessions to <code>demo-data</code> branch <span class="who">(Juan)</span></li>
-          <li>Logo / banner draft for README <span class="who">(Juan)</span></li>
-        </ul>
-      </div>
-
-      <div class="schedule-day">
-        <div class="schedule-day-head">
-          <span class="schedule-day-num">Day 3</span>
-          <span class="schedule-day-title">Demo video recording</span>
-        </div>
-        <ul class="schedule-day-tasks">
-          <li>Run <code>pnpm health</code> + <code>check:testnet</code> before recording <span class="who">(Juan)</span></li>
-          <li>5 acts per <code>docs/DEMO_SCRIPT.md</code>, ~3 minutes total <span class="who">(Juan)</span></li>
-          <li>Edit, add captions / chapter markers, upload <span class="who">(Juan)</span></li>
-          <li>If multi-agent demo (Tier 3) is ready, splice it into Act 2 as the headline <span class="who">(Juan)</span></li>
-        </ul>
-      </div>
-
-      <div class="schedule-day">
-        <div class="schedule-day-head">
-          <span class="schedule-day-num">Day 4</span>
-          <span class="schedule-day-title">Submission packet + buffer</span>
-        </div>
-        <ul class="schedule-day-tasks">
-          <li>Walk through every checkbox in <code>docs/SUBMISSION.md</code> <span class="who">(Juan + Darien)</span></li>
-          <li>Submit on ETHGlobal portal: project, description, tracks, video, repo, contracts <span class="who">(Juan)</span></li>
-          <li>Buffer for re-recording the video, fixing a last-minute bug, or finishing ENS if it slipped <span class="who">(both)</span></li>
-          <li>Final <code>pnpm test</code> + <code>docker compose build</code> as smoke check <span class="who">(Darien)</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== DEMO STRATEGY ========== -->
-<section id="demo">
-  <div class="container">
-    <div class="section-head">
-      <div class="eyebrow">05 · Demo strategy</div>
-      <h2>Three minutes, five acts, zero panic.</h2>
-      <p class="lede">The demo is structured so any single failure during the live run is recoverable without re-doing setup. Acts 2 and 3 are the prize-winning beats; act 4 is the safety net; acts 1 and 5 are framing.</p>
-    </div>
-
-    <div class="demo-flow">
-      <div class="act">
-        <div class="act-num">Act 01</div>
-        <div class="act-time">0:00 — 0:30</div>
-        <div class="act-title">Hook</div>
-        <div class="act-desc">"OpenClaw is great — but its memory dies with the laptop and inference goes to OpenAI. 0G-Claw fixes both."</div>
-      </div>
-
-      <div class="act headline">
-        <div class="act-num">Act 02 · Headline</div>
-        <div class="act-time">0:30 — 1:45</div>
-        <div class="act-title">Portable memory live</div>
-        <div class="act-desc">Run research-agent on machine A. Kill it. Resume from machine B with the same wallet — agent picks up exactly where A left off, from 0G Storage.</div>
-      </div>
-
-      <div class="act">
-        <div class="act-num">Act 03</div>
-        <div class="act-time">1:45 — 2:30</div>
-        <div class="act-title">Verifiable inference</div>
-        <div class="act-desc">Show 21/21 compute integration tests passing, point at <code>verificationHash</code>. Optionally a live <code>COMPUTE_ADAPTER=0g</code> call if testnet looks healthy.</div>
-      </div>
-
-      <div class="act">
-        <div class="act-num">Act 04</div>
-        <div class="act-time">2:30 — 2:50</div>
-        <div class="act-title">Fallback resilience</div>
-        <div class="act-desc">Switch to <code>MEMORY_ADAPTER=local COMPUTE_ADAPTER=local</code>. Same agent, same code path, no creds. The contract is the interface.</div>
-      </div>
-
-      <div class="act">
-        <div class="act-num">Act 05</div>
-        <div class="act-time">2:50 — 3:00</div>
-        <div class="act-title">Close</div>
-        <div class="act-desc">"Two adapters, four 0G-native capabilities, two reference agents — OpenClaw didn't change. We just made the persistence layer decentralized." Repo + license shot.</div>
-      </div>
-    </div>
-
-    <div class="demo-failures">
-      <div class="demo-failures-head"><span>⚠</span> Failure modes during the live demo</div>
-      <dl class="demo-failures-list">
-        <dt>0G Storage upload stalls in act 2</dt>
-        <dd>Drop to <code>MEMORY_ADAPTER=local</code>. Narration: "for time, switching to local — same interface, same code path."</dd>
-
-        <dt>Compute call hangs in act 3</dt>
-        <dd>Skip the live call, lean on the 21/21 test artifact already on screen. The proof is already pre-recorded.</dd>
-
-        <dt>Wallet runs out of OG mid-demo</dt>
-        <dd>Use a pre-recorded session from the <code>demo-data</code> branch — resume reads from history, no fresh writes needed.</dd>
-
-        <dt>Audience asks "is this really verifiable?"</dt>
-        <dd>Run <code>pnpm example:research:inspect</code> on the spot — every finding's <code>verificationHash</code> prints in the table.</dd>
-      </dl>
-    </div>
-  </div>
-</section>
-
-<!-- ========== SUBMISSION ========== -->
-<section id="submission">
-  <div class="container">
-    <div class="section-head">
-      <div class="eyebrow">06 · Submission packet</div>
-      <h2>ETHGlobal Open Agents — what's required and what's done.</h2>
-      <p class="lede">Every line item required by the submission portal, with current status. The progress bar is just for morale; what matters is that nothing in the "missing" pile is in Tier 4.</p>
-    </div>
-
-    <div class="submission-card">
-      <div class="submission-progress">
-        <span class="submission-progress-label">Submission readiness</span>
-        <div class="progress-bar"><div class="progress-bar-fill" id="submissionProgressFill" style="width: 69%"></div></div>
-        <!-- Initial value reflects items pre-marked done; JS recalculates on click. -->
-        <span class="progress-text" id="submissionProgressText">9 / 13</span>
-      </div>
-
-      <ul class="checklist" id="submissionList">
-        <li class="checklist-item done" data-id="s1">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Project name + description (README + SUBMISSION.md)</span>
-          <span class="checklist-status">Done</span>
-        </li>
-        <li class="checklist-item done" data-id="s2">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Public GitHub repo with setup instructions</span>
-          <span class="checklist-status">Done</span>
-        </li>
-        <li class="checklist-item done" data-id="s3">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Architecture diagram (README + docs/ARCHITECTURE.md)</span>
-          <span class="checklist-status">Done</span>
-        </li>
-        <li class="checklist-item done" data-id="s4">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">At least one working example agent</span>
-          <span class="checklist-status">2 working</span>
-        </li>
-        <li class="checklist-item done" data-id="s5">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Which 0G features / SDKs are used (table in README)</span>
-          <span class="checklist-status">Done</span>
-        </li>
-        <li class="checklist-item done" data-id="s6">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Demo script ready (docs/DEMO_SCRIPT.md)</span>
-          <span class="checklist-status">3-min plan</span>
-        </li>
-        <li class="checklist-item done" data-id="s7">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">License file (MIT)</span>
-          <span class="checklist-status">commit 7d79128</span>
-        </li>
-        <li class="checklist-item done" data-id="s8">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">CI workflow on every PR</span>
-          <span class="checklist-status">commit 7d79128</span>
-        </li>
-        <li class="checklist-item" data-id="s9">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Demo video (under 3 minutes) recorded + uploaded</span>
-          <span class="checklist-status">Tier 1</span>
-        </li>
-        <li class="checklist-item" data-id="s10">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Live demo link (or hosted recording link)</span>
-          <span class="checklist-status">Tier 1</span>
-        </li>
-        <li class="checklist-item" data-id="s11">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Contract / deployment addresses (ENS records, 0G provider)</span>
-          <span class="checklist-status">Tier 1 (ENS)</span>
-        </li>
-        <li class="checklist-item" data-id="s12">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Multi-device proof clip recorded</span>
-          <span class="checklist-status">Tier 1</span>
-        </li>
-        <li class="checklist-item done" data-id="s13">
-          <span class="check" role="checkbox" tabindex="0"></span>
-          <span class="checklist-text">Team contact info (SUBMISSION.md)</span>
-          <span class="checklist-status">Done</span>
-        </li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ========== SHIPPING LOG ========== -->
-<section id="shipped">
-  <div class="container">
-    <div class="section-head">
-      <div class="eyebrow">07 · Already shipped</div>
-      <h2>What landed across three branches.</h2>
-      <p class="lede">A reviewer can validate everything below by checking out the relevant branch, running <code>pnpm install &amp;&amp; pnpm test</code>, and watching 79/107 tests pass without any 0G credentials.</p>
-    </div>
-
-    <div class="ships">
-      <article class="ship">
-        <div class="ship-branch">main</div>
-        <div class="ship-title">Adapter layer + 0G integration (Darien)</div>
-        <div class="ship-stats">
-          <span><strong>51</strong> tests</span>
-          <span><strong>21/21</strong> compute live</span>
-          <span><strong>3 OG</strong> broker funded</span>
-        </div>
-        <ul class="ship-list">
-          <li><code>IMemoryAdapter</code> + <code>IComputeAdapter</code> contracts</li>
-          <li><code>0GMemoryAdapter</code> live on Galileo (KV + Log)</li>
-          <li><code>0GComputeAdapter</code> via <code>@0glabs/0g-serving-broker</code></li>
-          <li>Local fallback adapters for both surfaces</li>
-          <li>basic-agent end-to-end with adapter dispatch</li>
-          <li>Docker, .env scaffolding, broker setup script</li>
+        <p class="agent-desc">Multi-turn conversation. Loads prior session on startup, appends each turn to KV + Log. Detects TTY for interactive vs scripted modes (Docker / CI runs the latter).</p>
+        <div class="agent-cmd"><span class="prompt">$</span>SESSION_ID=… MEMORY_ADAPTER=0g pnpm example:basic</div>
+        <ul class="agent-features">
+          <li>Context window of last 20 messages, bounded</li>
+          <li>Same code path against any backend (0G or local stub)</li>
+          <li>Resumes by <code>SESSION_ID</code> on any machine with the same wallet</li>
+          <li>Prints <code>verificationHash</code> per turn when on 0G Compute</li>
         </ul>
       </article>
 
-      <article class="ship">
-        <div class="ship-branch">chore/demo-readiness</div>
-        <div class="ship-title">Demo readiness — README, docs, Docker fix (Juan)</div>
-        <div class="ship-stats">
-          <span><strong>9</strong> files</span>
-          <span><strong>+1036</strong> /-137</span>
-          <span>commit <strong>e0e9493</strong></span>
+      <article class="agent">
+        <div class="agent-head">
+          <div class="agent-name">research-agent</div>
+          <div class="agent-pattern">PLAN → RESEARCH → SYNTHESIZE</div>
         </div>
-        <ul class="ship-list">
-          <li>README rewrite — status table, broker funding, deferred execution</li>
-          <li><code>docs/ARCHITECTURE.md</code> + <code>DEMO_SCRIPT.md</code> + <code>SUBMISSION.md</code></li>
-          <li><code>examples/basic-agent/README.md</code></li>
-          <li>Docker volume bug fix via <code>HOME=/app</code> — no code changes</li>
-          <li>Hardened <code>.dockerignore</code> + <code>.gitignore</code></li>
-          <li><code>HANDOFF.md</code> for Darien review</li>
-        </ul>
-      </article>
-
-      <article class="ship">
-        <div class="ship-branch">feat/research-agent</div>
-        <div class="ship-title">Second example agent + hardening + polish (Juan)</div>
-        <div class="ship-stats">
-          <span><strong>3</strong> commits</span>
-          <span><strong>28</strong> tests</span>
-          <span>commit <strong>7d79128</strong></span>
-        </div>
-        <ul class="ship-list">
-          <li>research-agent — plan → research → synthesize pipeline</li>
-          <li>WikipediaSearchTool + MemoryRecallTool + ITool (local to example)</li>
-          <li>Durability recovery from log when KV snapshot trails</li>
-          <li>Persisted <code>synthesisVerificationHash</code> in ResearchState</li>
-          <li><code>jsonExtract</code> module + 11 dedicated tests</li>
-          <li>LICENSE (MIT) + GitHub Actions CI workflow</li>
+        <p class="agent-desc">Topic-driven pipeline. LLM plans sub-questions, queries Wikipedia per sub-question, persists each finding, synthesizes a cited report. Resumable from any machine.</p>
+        <div class="agent-cmd"><span class="prompt">$</span>RESEARCH_TOPIC="0G" MEMORY_ADAPTER=0g pnpm example:research</div>
+        <ul class="agent-features">
+          <li>Tool abstraction (<code>ITool</code>) — Wikipedia + memory recall</li>
+          <li>Durability: log-store-first; KV snapshot follows</li>
           <li><code>example:research:inspect</code> — read-only memory viewer</li>
+          <li>Each finding carries its own <code>verificationHash</code></li>
         </ul>
       </article>
+    </div>
+
+    <div class="agents-takeaway">
+      <strong>Same adapter contract. Completely different agent shape.</strong> That's the framework story — judges can verify the diff at <code>git diff main -- adapters/</code>: nothing changed.
+    </div>
+  </div>
+</section>
+
+<!-- ========== DEMO VIDEO ========== -->
+<section id="video">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">3-minute demo</div>
+      <h2>Watch portable memory work across two machines.</h2>
+      <p class="lede">Run the agent on laptop A, kill it, resume on laptop B with the same wallet — the agent picks up exactly where A left off. The single-most-watch-this beat of the demo.</p>
+    </div>
+
+    <div class="video-card">
+      <div class="video-frame">
+        <div class="video-play" aria-label="Demo video play"></div>
+        <div class="video-status">Demo recording — uploading to submission portal</div>
+      </div>
+      <p class="video-caption">Five acts (3 minutes total): hook · portable memory live · verifiable inference proof · fallback resilience · close. Full script in <code>docs/DEMO_SCRIPT.md</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TRY IT / QUICKSTART ========== -->
+<section id="try">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Try it</div>
+      <h2>30 seconds from clone to verifiable research.</h2>
+      <p class="lede">Real Wikipedia API. Real LLM. Real on-chain attestation per finding. No build step, no Docker required (Docker is available — see README), and falls back to local adapters cleanly if you don't have 0G credentials yet.</p>
+    </div>
+
+    <div class="quickstart">
+      <div class="qs-step">
+        <div class="qs-num">01</div>
+        <div class="qs-body">
+          <div class="qs-title">Clone and install</div>
+          <pre class="qs-cmd"><span class="prompt">$</span>git clone https://github.com/DarienPerezGit/0G-CLAW.git
+<span class="prompt">$</span>cd 0G-CLAW <span class="c"># 1610 lines of TS, 79 passing tests</span>
+<span class="prompt">$</span>pnpm install</pre>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-num">02</div>
+        <div class="qs-body">
+          <div class="qs-title">Configure (optional — skip for local fallback)</div>
+          <pre class="qs-cmd"><span class="prompt">$</span>cp .env.example .env
+<span class="prompt">$</span><span class="c"># Fill in OG_PRIVATE_KEY + OG_COMPUTE_PROVIDER for full 0G mode.</span>
+<span class="prompt">$</span><span class="c"># See README "broker funding requirements" for the one-time setup.</span></pre>
+          <p class="qs-note">Without these, the agent runs against <code>LocalMemoryAdapter</code> + a stub compute adapter — pipeline structure stays exercised end-to-end.</p>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-num">03</div>
+        <div class="qs-body">
+          <div class="qs-title">Run the chat agent</div>
+          <pre class="qs-cmd"><span class="prompt">$</span><span class="arg">MEMORY_ADAPTER</span>=<span class="str">0g</span> pnpm example:basic <span class="c"># 0G memory + local stub</span>
+<span class="prompt">$</span><span class="arg">MEMORY_ADAPTER</span>=<span class="str">0g</span> <span class="arg">COMPUTE_ADAPTER</span>=<span class="str">0g</span> pnpm example:basic <span class="c"># full</span></pre>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-num">04</div>
+        <div class="qs-body">
+          <div class="qs-title">Run the research agent</div>
+          <pre class="qs-cmd"><span class="prompt">$</span><span class="arg">RESEARCH_TOPIC</span>=<span class="str">"0G Network architecture"</span> \
+    <span class="arg">MEMORY_ADAPTER</span>=<span class="str">0g</span> <span class="arg">COMPUTE_ADAPTER</span>=<span class="str">0g</span> \
+    pnpm example:research
+
+<span class="prompt">$</span><span class="c"># Then on any other machine with the same wallet:</span>
+<span class="prompt">$</span><span class="arg">RESEARCH_TOPIC</span>=<span class="str">"0G Network architecture"</span> \
+    <span class="arg">MEMORY_ADAPTER</span>=<span class="str">0g</span> pnpm example:research:inspect</pre>
+          <p class="qs-note">Same wallet, same topic, any machine = same research. The headline of the framework story.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== STACK ========== -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">What's in the box</div>
+      <h2>Open primitives, no vendor surface.</h2>
+      <p class="lede">Everything 0G-Claw uses is open and replaceable. The framework's only opinions are the two adapter interfaces — every other choice is yours.</p>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack">
+        <span class="stack-mark">Memory</span>
+        <div class="stack-name">@0gfoundation/0g-ts-sdk</div>
+        <div class="stack-role">0G Storage KV + Log on Galileo testnet, integration tested live.</div>
+      </div>
+      <div class="stack">
+        <span class="stack-mark">Compute</span>
+        <div class="stack-name">@0glabs/0g-serving-broker</div>
+        <div class="stack-role">Funded broker, acknowledged provider, 21/21 verifiable inference tests passing.</div>
+      </div>
+      <div class="stack">
+        <span class="stack-mark">Identity</span>
+        <div class="stack-name">@ensdomains/ensjs</div>
+        <div class="stack-role">Planned: write 0G memory roots + provider address as ENS text records.</div>
+      </div>
+      <div class="stack">
+        <span class="stack-mark">Runtime</span>
+        <div class="stack-name">OpenClaw + TypeScript strict</div>
+        <div class="stack-role">OpenClaw as git submodule (untouched). TypeScript 5.8 strict, pnpm 10, Node 20.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TRACKS ========== -->
+<section class="tracks">
+  <div class="container">
+    <div class="tracks-card">
+      <div>
+        <div class="label">ETHGlobal Open Agents — submission</div>
+        <h3>Built on the 0G stack and ENS.</h3>
+        <p>Targeting two tracks. Live on Galileo testnet. Two reference agents proving the framework. MIT licensed and open from day one.</p>
+      </div>
+      <div class="tracks-list">
+        <span class="tracks-pill framework">Best Agent Framework · primary</span>
+        <span class="tracks-pill ens">ENS AI Agents · bonus</span>
+      </div>
     </div>
   </div>
 </section>
@@ -2172,15 +1439,15 @@
       </div>
 
       <div class="footer-col">
-        <h4>Repo</h4>
-        <a href="https://github.com/DarienPerezGit/0G-CLAW" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/DarienPerezGit/0G-CLAW/pulls" target="_blank" rel="noopener">Open PRs</a>
+        <h4>Project</h4>
+        <a href="https://github.com/DarienPerezGit/0G-CLAW" target="_blank" rel="noopener">GitHub repo</a>
         <a href="https://github.com/DarienPerezGit/0G-CLAW/blob/main/README.md" target="_blank" rel="noopener">README</a>
         <a href="https://github.com/DarienPerezGit/0G-CLAW/blob/main/LICENSE" target="_blank" rel="noopener">License (MIT)</a>
+        <a href="../team-plan/index.html">Team plan (internal)</a>
       </div>
 
       <div class="footer-col">
-        <h4>0G Protocol</h4>
+        <h4>0G Stack</h4>
         <a href="https://0g.ai" target="_blank" rel="noopener">0g.ai</a>
         <a href="https://build.0g.ai" target="_blank" rel="noopener">Builder Hub</a>
         <a href="https://faucet.0g.ai" target="_blank" rel="noopener">Galileo Faucet</a>
@@ -2194,106 +1461,10 @@
 
     <div class="footer-bottom">
       <span>0G-Claw · MIT licensed · Juan Chaparro + Darien Pérez</span>
-      <span>This page is part of the repo · <code>pitch/index.html</code></span>
+      <span>Public submission landing · <code>pitch/index.html</code></span>
     </div>
   </div>
 </footer>
-
-<script>
-  (function () {
-    'use strict';
-
-    /* ---------------------------------------------------------------- */
-    /* Plan checkboxes — persisted in localStorage                      */
-    /* ---------------------------------------------------------------- */
-    const STORAGE_PREFIX = 'ogc_plan_';
-    const SUBMISSION_PREFIX = 'ogc_sub_';
-
-    function loadCheckedSet(prefix) {
-      const set = new Set();
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.startsWith(prefix)) {
-            const id = k.slice(prefix.length);
-            if (localStorage.getItem(k) === '1') set.add(id);
-          }
-        }
-      } catch (e) {
-        /* localStorage may be unavailable in certain contexts; fall through */
-      }
-      return set;
-    }
-
-    function setChecked(prefix, id, on) {
-      try {
-        if (on) localStorage.setItem(prefix + id, '1');
-        else localStorage.removeItem(prefix + id);
-      } catch (e) {
-        /* swallow */
-      }
-    }
-
-    function applyChecked(rootSel, prefix) {
-      const items = document.querySelectorAll(rootSel);
-      const checked = loadCheckedSet(prefix);
-      items.forEach((item) => {
-        const id = item.dataset.id;
-        if (id && (checked.has(id) || item.classList.contains('done'))) {
-          item.classList.add('done');
-        }
-      });
-    }
-
-    function bindCheckboxes(rootSel, prefix, onChange) {
-      document.querySelectorAll(rootSel).forEach((item) => {
-        const check = item.querySelector('.check');
-        if (!check) return;
-        const toggle = () => {
-          const id = item.dataset.id;
-          if (!id) return;
-          const nowDone = !item.classList.contains('done');
-          item.classList.toggle('done', nowDone);
-          setChecked(prefix, id, nowDone);
-          onChange();
-        };
-        check.addEventListener('click', toggle);
-        check.addEventListener('keydown', (e) => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            toggle();
-          }
-        });
-      });
-    }
-
-    function refreshProgress(itemsSel, fillEl, textEl) {
-      const items = document.querySelectorAll(itemsSel);
-      const total = items.length;
-      let done = 0;
-      items.forEach((it) => { if (it.classList.contains('done')) done++; });
-      const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-      if (fillEl) fillEl.style.width = pct + '%';
-      if (textEl) textEl.textContent = done + ' / ' + total;
-    }
-
-    /* Plan tier checkboxes */
-    applyChecked('#tiers .tier-item', STORAGE_PREFIX);
-    const planFill = document.getElementById('planProgressFill');
-    const planText = document.getElementById('planProgressText');
-    const refreshPlan = () => refreshProgress('#tiers .tier-item', planFill, planText);
-    bindCheckboxes('#tiers .tier-item', STORAGE_PREFIX, refreshPlan);
-    refreshPlan();
-
-    /* Submission checklist */
-    applyChecked('#submissionList .checklist-item', SUBMISSION_PREFIX);
-    const subFill = document.getElementById('submissionProgressFill');
-    const subText = document.getElementById('submissionProgressText');
-    const refreshSub = () => refreshProgress('#submissionList .checklist-item', subFill, subText);
-    bindCheckboxes('#submissionList .checklist-item', SUBMISSION_PREFIX, refreshSub);
-    refreshSub();
-  })();
-</script>
 
 </body>
 </html>
