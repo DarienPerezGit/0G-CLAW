@@ -58,7 +58,7 @@ OpenClaw is great. But it has two hard dependencies:
 | **Memory** | Lives in `~/.openclaw/agents/<id>/sessions/*.jsonl` — lose the disk, lose the agent | Persists in **0G Storage KV/Log** — portable across any device |
 | **Inference** | Routes to OpenAI / Anthropic APIs — centralized, censorable, opaque | Routes to **0G Compute** — open models, verifiable inference, signed responses |
 
-**The pitch:** Same agent, any machine, no vendor lock-in.
+**The vision:** Same agent, any machine, no vendor lock-in.
 
 ---
 
@@ -272,23 +272,6 @@ This is what lets the agent boot in any environment (CI, Docker, fresh laptop) w
 
 ---
 
-## Demo flow
-
-The recommended order for a live demo (3 minutes, see [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) for the full script):
-
-1. **Primary path — 0G memory persistence.**
-   Run with `MEMORY_ADAPTER=0g` and **local compute**. Have a conversation, kill the process, resume from a different shell or machine with the same `SESSION_ID` + wallet — memory is restored from 0G Storage. This is the headline demo.
-
-2. **Proof of compute.**
-   Show the saved test output: `21/21` integration tests passing against `0xa48f01…`, including the `verificationHash` field. This proves the compute path works without depending on live testnet conditions during the demo.
-
-3. **Optional live compute.**
-   Only if `pnpm check:testnet` reports a healthy network, switch to `COMPUTE_ADAPTER=0g` and run a single inference live.
-
-This order avoids the failure mode where a slow Galileo Storage node blocks a demo whose components are individually validated.
-
----
-
 ## Research Agent
 
 `examples/research-agent/` demonstrates how 0G-Claw can power a tool-using agent while preserving the same adapter architecture.
@@ -329,7 +312,7 @@ This makes agents discoverable by name and qualifies for the ENS AI Agents track
 
 ## Why not LangChain?
 
-LangChain and CrewAI assume a coordinator — a central process that orchestrates everything. OpenClaw is personal and local-first. 0G-Claw keeps that philosophy but makes the persistence layer decentralized. You're not building a pipeline, you're building a persistent agent that happens to use decentralized infra under the hood.
+LangChain and CrewAI assume a coordinator — a central process that orchestrates everything. OpenClaw is personal and local-first. 0G-Claw keeps that philosophy but makes the persistence layer decentralized. You're not building a pipeline.
 
 ---
 
