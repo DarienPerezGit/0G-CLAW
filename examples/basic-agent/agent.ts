@@ -98,8 +98,12 @@ console.log('  0G-Claw Basic Agent');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`  Agent ID   : ${AGENT_ID}`);
 console.log(`  Session ID : ${SESSION_ID}`);
-console.log(`  Memory     : ${MEMORY_ADAPTER}`);
+console.log(`  Memory     : ${MEMORY_ADAPTER === '0g' ? '0G Storage' : 'local'}`);
 console.log(`  Compute    : ${COMPUTE_ADAPTER}`);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+if (MEMORY_ADAPTER === '0g') {
+  console.log('  Memory backend: 0G Storage');
+}
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
 const memory  = await buildMemoryAdapter();
@@ -187,11 +191,13 @@ const isInteractive = process.stdin.isTTY;
 async function persistMessage(msg: SessionMessage): Promise<void> {
   // Append to immutable log
   await memory.appendMessage(AGENT_ID, SESSION_ID, msg);
+  console.log(`[agent] messages persisted -> ${MEMORY_ADAPTER === '0g' ? '0G Storage' : 'local'}`);
 
   // Update mutable session snapshot
   session!.messages.push(msg);
   session!.updatedAt = Date.now();
   await memory.saveSession(session!);
+  console.log(`[agent] session persisted  -> ${MEMORY_ADAPTER === '0g' ? '0G Storage' : 'local'}`);
 }
 
 async function runExchange(userInput: string): Promise<void> {

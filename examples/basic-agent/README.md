@@ -103,6 +103,6 @@ Each turn prints:
 |---|---|
 | `LocalMemoryAdapter` | `~/.0g-claw/<AGENT_ID>/sessions/*.json` and `…/history/*.jsonl` |
 | Inside Docker (default) | `./data/<AGENT_ID>/…` on the host (mounted to `/app/.0g-claw` via `HOME=/app`) |
-| `0GMemoryAdapter` | 0G Storage KV (sessions) + Log (history), keyed by `${AGENT_ID}:${SESSION_ID}` |
+| `0GMemoryAdapter` | 0G Storage uploads + local rootHash index for sessions/history |
 
 For the 0G case, the actual KV root hash is what you'd anchor in ENS for the planned identity track.

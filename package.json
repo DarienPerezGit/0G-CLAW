@@ -3,8 +3,33 @@
   "version": "0.1.0",
   "description": "OpenClaw with decentralized memory and compute via 0G Protocol",
   "type": "module",
+  "main": "./dist/adapters/memory/IMemoryAdapter.js",
+  "types": "./dist/adapters/memory/IMemoryAdapter.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/adapters/memory/IMemoryAdapter.d.ts",
+      "import": "./dist/adapters/memory/IMemoryAdapter.js"
+    },
+    "./adapters/memory/*.js": {
+      "types": "./dist/adapters/memory/*.d.ts",
+      "import": "./dist/adapters/memory/*.js"
+    },
+    "./adapters/memory/*": {
+      "types": "./dist/adapters/memory/*.d.ts",
+      "import": "./dist/adapters/memory/*.js"
+    },
+    "./adapters/compute/*.js": {
+      "types": "./dist/adapters/compute/*.d.ts",
+      "import": "./dist/adapters/compute/*.js"
+    },
+    "./adapters/compute/*": {
+      "types": "./dist/adapters/compute/*.d.ts",
+      "import": "./dist/adapters/compute/*.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
+    "prepare": "pnpm build",
     "dev": "tsx watch",
     "example:basic": "tsx examples/basic-agent/agent.ts",
     "example:basic:prod": "node dist/examples/basic-agent/agent.js",
@@ -14,6 +39,7 @@
     "example:research:inspect:prod": "node dist/examples/research-agent/inspect.js",
     "check:testnet": "tsx scripts/check-testnet.ts",
     "setup:broker": "tsx scripts/setup-compute-broker.ts",
+    "conversation": "tsx scripts/conversation.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
